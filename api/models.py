@@ -23,7 +23,7 @@ class Profile(models.Model):
     account = models.ForeignKey(Account, on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.account.username
+        return "%s %s" % (self.first_name, self.last_name)
 
 
 class BusinessPartner(models.Model):
@@ -31,16 +31,34 @@ class BusinessPartner(models.Model):
     last_name = models.CharField(max_length=150)
     mobile_number = models.CharField(max_length=150, unique=True, null=True)
     email = models.EmailField(max_length=255, unique=True, null=True, blank=True)
+    business_name = models.CharField(max_length=255, blank=True)
+    type_of_business = models.CharField(max_length=150, blank=True)
+    street_address = models.CharField(max_length=255, blank=True)
+    city = models.CharField(max_length=150, blank=True)
+    state_province = models.CharField(max_length=150, blank=True)
+    postal_zip = models.IntegerField(null=True, blank=True)
     account = models.ForeignKey(Account, on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.account.username
+        return "%s %s"(self.first_name, self.last_name)
 
 
-class BusinessProfile(models.Model):
-    business_name = models.CharField(max_length=255, blank=True)
-    type_of_business = models.CharField(max_length=150, blank=True)
-    personal_profile = models.ForeignKey(BusinessPartner, on_delete=models.CASCADE)
+class EventBookings(models.Model):
+    type_of_event = models.CharField(max_length=55)
+    venue_name = models.CharField(max_length=150)
+    event_budget = models.IntegerField()
+    desired_date = models.DateField()
+    time_schedule = models.TimeField()
+    guests_no = models.IntegerField()
+    service_requirements = models.CharField(max_length=10)
+    beverages = models.CharField(max_length=15)
+    best_way_contact = models.CharField(max_length=20)
+    booked_by = models.ForeignKey(Profile, on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.personal_profile.first_name + " " + self.personal_profile.last_name
+        return "%s %s" % (self.booked_by.first_name, self.booked_by.last_name)
+
+
+"""
+class InterviewSchedules(models.Model):
+"""

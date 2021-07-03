@@ -64,7 +64,7 @@ class ProfileSerializer(serializers.ModelSerializer):
         profile.save()
 
 
-class PartnerSerializer(serializers.ModelSerializer):
+class BusinessPartnerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
         fields = [

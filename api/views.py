@@ -21,6 +21,8 @@ class CreateAccountView(generics.CreateAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-# class LoginAccountView(generics.RetrieveAPIView):
+"""
+class LoginAccountView(generics.RetrieveAPIView):
 # serializer_class =
 # permission_classes =
+"""
