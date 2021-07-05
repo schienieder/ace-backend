@@ -2,7 +2,7 @@ from rest_framework import serializers
 from api.models import Account, Profile, BusinessPartner
 
 
-class CreateAccountSerializer(serializers.ModelSerializer):
+class AccountSerializer(serializers.ModelSerializer):
     class Meta:
         model = Account
         fields = ["id", "username", "password", "role"]
@@ -66,13 +66,19 @@ class ProfileSerializer(serializers.ModelSerializer):
 
 class BusinessPartnerSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Profile
+        model = BusinessPartner
         fields = [
             "id",
             "first_name",
             "last_name",
             "mobile_number",
             "email",
+            "business_name",
+            "type_of_business",
+            "street_address",
+            "city",
+            "state_province",
+            "postal_zip",
             "account",
         ]
         extra_kwargs = {"id": {"read_only": True}}

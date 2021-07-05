@@ -23,7 +23,7 @@ class Profile(models.Model):
     account = models.ForeignKey(Account, on_delete=models.CASCADE)
 
     def __str__(self):
-        return "%s %s" % (self.first_name, self.last_name)
+        return self.first_name + " " + self.last_name
 
 
 class BusinessPartner(models.Model):
@@ -40,7 +40,7 @@ class BusinessPartner(models.Model):
     account = models.ForeignKey(Account, on_delete=models.CASCADE)
 
     def __str__(self):
-        return "%s %s"(self.first_name, self.last_name)
+        return self.first_name + " " + self.last_name
 
 
 class EventBookings(models.Model):
@@ -56,7 +56,7 @@ class EventBookings(models.Model):
     booked_by = models.ForeignKey(Profile, on_delete=models.CASCADE)
 
     def __str__(self):
-        return "%s %s" % (self.booked_by.first_name, self.booked_by.last_name)
+        return self.booked_by.first_name + " " + self.booked_by.last_name
 
 
 """
