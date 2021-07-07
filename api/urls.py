@@ -6,7 +6,8 @@ from rest_framework_simplejwt.views import (
 from api.views import (
     CreateAccountView,
     GetAccountView,
-    GetProfileView,
+    GetClientProfileView,
+    GetPartnerProfileView,
     AllBusinessPartnersView,
 )
 
@@ -15,6 +16,17 @@ urlpatterns = [
     path("api/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("account/<int:pk>", GetAccountView.as_view(), name="accountView"),
-    path("profile/<int:pk>", GetProfileView.as_view(), name="profileView"),
-    path("partners/", AllBusinessPartnersView.as_view(), name="allBusinessPartners"),
+    path(
+        "partner_profile/<int:pk>",
+        GetPartnerProfileView.as_view(),
+        name="partnerProfileView",
+    ),
+    path(
+        "client_profile/<int:pk>",
+        GetClientProfileView.as_view(),
+        name="clientProfileView",
+    ),
+    path(
+        "partners_list/", AllBusinessPartnersView.as_view(), name="allBusinessPartners"
+    ),
 ]

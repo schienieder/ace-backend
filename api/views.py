@@ -35,7 +35,7 @@ class GetAccountView(generics.RetrieveAPIView):
     queryset = Account.objects.all()
 
 
-class GetProfileView(generics.RetrieveAPIView):
+class GetClientProfileView(generics.RetrieveAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = ProfileSerializer
     queryset = Profile.objects.all()
@@ -46,6 +46,27 @@ class GetProfileView(generics.RetrieveAPIView):
     def get_object(self):
         queryset = self.get_queryset()
         queryset = Profile.objects.filter(account__id=self.request.user.id).first()
+        return queryset
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
+
+class GetPartnerProfileView(generics.RetrieveAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = BusinessPartnerSerializer
+    queryset = Profile.objects.all()
+
+    def get_queryset(self):
+        return self.queryset
+
+    def get_object(self):
+        queryset = self.get_queryset()
+        queryset = BusinessPartner.objects.filter(
+            account__id=self.request.user.id
+        ).first()
         return queryset
 
     def retrieve(self, request, *args, **kwargs):
