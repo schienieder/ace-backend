@@ -9,7 +9,18 @@ class Account(AbstractUser):
     REQUIRED_FIELDS = ["password", "role"]
 
 
-class Profile(models.Model):
+class Admin(models.Model):
+    first_name = models.CharField(max_length=150)
+    last_name = models.CharField(max_length=150)
+    mobile_number = models.CharField(max_length=150, unique=True, null=True)
+    email = models.EmailField(max_length=255, unique=True, null=True, blank=True)
+    account = models.ForeignKey(Account, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.first_name + " " + self.last_name
+
+
+class Client(models.Model):
     first_name = models.CharField(max_length=150)
     last_name = models.CharField(max_length=150)
     mobile_number = models.CharField(max_length=150, unique=True, null=True)
@@ -53,7 +64,7 @@ class EventBookings(models.Model):
     service_requirements = models.CharField(max_length=10)
     beverages = models.CharField(max_length=15)
     best_way_contact = models.CharField(max_length=20)
-    booked_by = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    booked_by = models.ForeignKey(Client, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.booked_by.first_name + " " + self.booked_by.last_name

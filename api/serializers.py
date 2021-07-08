@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from api.models import Account, Profile, BusinessPartner
+from api.models import Account, Admin, Client, BusinessPartner
 
 
 class AccountSerializer(serializers.ModelSerializer):
@@ -18,14 +18,23 @@ class AccountSerializer(serializers.ModelSerializer):
         account.set_password(validated_data["password"])
         account.save()
         request = self.context["request"]
-        if validated_data["role"] != "partner":
-            profile = Profile.objects.create(
+        if validated_data["role"] == "admin":
+            admin = Admin.objects.create(
+                first_name=request.data["first_name"],
+                last_name=request.data["last_name"],
+                mobile_number=request.data["last_name"],
+                email=request.data["email"],
+                account=account,
+            )
+            admin.save()
+        elif validated_data["role"] == "client":
+            client = Client.objects.create(
                 first_name=request.data["first_name"],
                 last_name=request.data["last_name"],
                 mobile_number=request.data["mobile_number"],
                 account=account,
             )
-            profile.save()
+            client.save()
         else:
             partner = BusinessPartner.objects.create(
                 first_name=request.data["first_name"],
@@ -38,9 +47,9 @@ class AccountSerializer(serializers.ModelSerializer):
         return account
 
 
-class ProfileSerializer(serializers.ModelSerializer):
+class ClientSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Profile
+        model = Client
         fields = [
             "id",
             "first_name",
@@ -58,7 +67,7 @@ class ProfileSerializer(serializers.ModelSerializer):
         extra_kwargs = {"id": {"read_only": True}}
 
     def update(self, instance, validated_data):
-        profile = Profile.objects.get(account=instance)
+        profile = Client.objects.get(account=instance)
         for (key, value) in validated_data.items():
             setattr(profile, key, value)
         profile.save()

@@ -7,10 +7,10 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.exceptions import AuthenticationFailed
 from api.serializers import (
     AccountSerializer,
-    ProfileSerializer,
+    ClientSerializer,
     BusinessPartnerSerializer,
 )
-from api.models import Account, Profile, BusinessPartner
+from api.models import Account, Client, BusinessPartner
 
 # Create your views here.
 class CreateAccountView(generics.CreateAPIView):
@@ -37,15 +37,15 @@ class GetAccountView(generics.RetrieveAPIView):
 
 class GetClientProfileView(generics.RetrieveAPIView):
     permission_classes = [IsAuthenticated]
-    serializer_class = ProfileSerializer
-    queryset = Profile.objects.all()
+    serializer_class = ClientSerializer
+    queryset = Client.objects.all()
 
     def get_queryset(self):
         return self.queryset
 
     def get_object(self):
         queryset = self.get_queryset()
-        queryset = Profile.objects.filter(account__id=self.request.user.id).first()
+        queryset = Client.objects.filter(account__id=self.request.user.id).first()
         return queryset
 
     def retrieve(self, request, *args, **kwargs):
@@ -57,7 +57,7 @@ class GetClientProfileView(generics.RetrieveAPIView):
 class GetPartnerProfileView(generics.RetrieveAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = BusinessPartnerSerializer
-    queryset = Profile.objects.all()
+    queryset = BusinessPartner.objects.all()
 
     def get_queryset(self):
         return self.queryset
@@ -79,6 +79,12 @@ class AllBusinessPartnersView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = BusinessPartnerSerializer
     queryset = BusinessPartner.objects.all()
+
+
+class AllClientsView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = BusinessPartnerSerializer
+    queryset = Client.objects.all()
 
 
 """

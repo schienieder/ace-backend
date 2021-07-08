@@ -9,6 +9,7 @@ from api.views import (
     GetClientProfileView,
     GetPartnerProfileView,
     AllBusinessPartnersView,
+    AllClientsView,
 )
 
 urlpatterns = [
@@ -29,4 +30,5 @@ urlpatterns = [
     path(
         "partners_list/", AllBusinessPartnersView.as_view(), name="allBusinessPartners"
     ),
+    path("clients_list/", AllClientsView.as_view(), name="allClients"),
 ]
