@@ -75,6 +75,23 @@ class GetPartnerProfileView(generics.RetrieveAPIView):
         return Response(serializer.data)
 
 
+class UpdatePartnerProfileView(generics.UpdateAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = BusinessPartnerSerializer
+    queryset = BusinessPartner.objects.all()
+
+    def update(self, request, *args, **kwargs):
+        serializer = self.serializer_class(
+            request.user, data=request.data, partial=True
+        )
+
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        return Response(serializer.error, status=status.HTTP_400_BAD_REQUEST)
+
+
 class AllBusinessPartnersView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = BusinessPartnerSerializer

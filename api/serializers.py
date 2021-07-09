@@ -67,10 +67,11 @@ class ClientSerializer(serializers.ModelSerializer):
         extra_kwargs = {"id": {"read_only": True}}
 
     def update(self, instance, validated_data):
-        profile = Client.objects.get(account=instance)
+        client = Client.objects.get(account=instance)
         for (key, value) in validated_data.items():
-            setattr(profile, key, value)
-        profile.save()
+            setattr(client, key, value)
+        client.save()
+        return client
 
 
 class BusinessPartnerSerializer(serializers.ModelSerializer):
@@ -93,7 +94,16 @@ class BusinessPartnerSerializer(serializers.ModelSerializer):
         extra_kwargs = {"id": {"read_only": True}}
 
     def update(self, instance, validated_data):
+        # mobile_number = validated_data.pop("mobile_number")
+        # email = validated_data.pop("email")
         partner = BusinessPartner.objects.get(account=instance)
         for (key, value) in validated_data.items():
             setattr(partner, key, value)
         partner.save()
+        # if partner["mobile_number"] != mobile_number:
+        #     partner.setattr(partner, "mobile_number", mobile_number)
+        #     partner.save()
+        # if partner["email"] != email:
+        #     partner.setattr(partner, "email", email)
+        #     partner.save()
+        return partner

@@ -8,6 +8,7 @@ from api.views import (
     GetAccountView,
     GetClientProfileView,
     GetPartnerProfileView,
+    UpdatePartnerProfileView,
     AllBusinessPartnersView,
     AllClientsView,
 )
@@ -18,14 +19,19 @@ urlpatterns = [
     path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("account/<int:pk>", GetAccountView.as_view(), name="accountView"),
     path(
+        "client_profile/<int:pk>",
+        GetClientProfileView.as_view(),
+        name="clientProfileView",
+    ),
+    path(
         "partner_profile/<int:pk>",
         GetPartnerProfileView.as_view(),
         name="partnerProfileView",
     ),
     path(
-        "client_profile/<int:pk>",
-        GetClientProfileView.as_view(),
-        name="clientProfileView",
+        "api/partner_profile/update",
+        UpdatePartnerProfileView.as_view(),
+        name="partnerUpdate",
     ),
     path(
         "partners_list/", AllBusinessPartnersView.as_view(), name="allBusinessPartners"
