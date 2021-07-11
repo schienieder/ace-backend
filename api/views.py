@@ -9,8 +9,9 @@ from api.serializers import (
     AccountSerializer,
     ClientSerializer,
     BusinessPartnerSerializer,
+    EventBookingSerializer,
 )
-from api.models import Account, Client, BusinessPartner
+from api.models import Account, Client, BusinessPartner, EventBookings
 
 # Create your views here.
 class CreateAccountView(generics.CreateAPIView):
@@ -156,6 +157,43 @@ class DestroyPartnerProfileView(generics.DestroyAPIView):
         )
 
 
+# BOOKING VIEWS
+class CreateBookingView(generics.CreateAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = EventBookingSerializer
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.serializer_class(
+            data=request.data, context={"request": request}
+        )
+
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class GetClientBookingView(generics.RetrieveAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = EventBookingSerializer
+    queryset = EventBookings.objects.all()
+
+    def get_queryset(self):
+        return self.queryset
+
+    def get_object(self):
+        queryset = self.get_queryset()
+        client = Client.objects.get(account__id=self.request.user.id)
+        my_obj = get_object_or_404(queryset, booked_by=client)
+        return my_obj
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
+
 # LIST VIEWS
 class AllBusinessPartnersView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
@@ -167,3 +205,9 @@ class AllClientsView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = BusinessPartnerSerializer
     queryset = Client.objects.all()
+
+
+class AllClientBookingsView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = EventBookingSerializer
+    queryset = EventBookings.objects.all()

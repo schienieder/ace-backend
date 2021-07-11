@@ -12,8 +12,11 @@ from api.views import (
     GetPartnerProfileView,
     UpdatePartnerProfileView,
     DestroyPartnerProfileView,
+    CreateBookingView,
+    GetClientBookingView,
     AllBusinessPartnersView,
     AllClientsView,
+    AllClientBookingsView,
 )
 
 urlpatterns = [
@@ -53,9 +56,15 @@ urlpatterns = [
         DestroyPartnerProfileView.as_view(),
         name="partnerProfileDestroy",
     ),
+    # BOOKING VIEW PATHS
+    path("add_booking/", CreateBookingView.as_view(), name="createBookings"),
+    path(
+        "client_booking/<int:pk>", GetClientBookingView.as_view(), name="clientBooking"
+    ),
     # LIST VIEW PATHS
     path(
         "partners_list/", AllBusinessPartnersView.as_view(), name="allBusinessPartners"
     ),
     path("clients_list/", AllClientsView.as_view(), name="allClients"),
+    path("bookings_list/", AllClientBookingsView.as_view(), name="allBookings"),
 ]

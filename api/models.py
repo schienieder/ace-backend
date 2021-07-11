@@ -61,9 +61,9 @@ class EventBookings(models.Model):
     desired_date = models.DateField()
     time_schedule = models.TimeField()
     guests_no = models.IntegerField()
-    service_requirements = models.CharField(max_length=10)
-    beverages = models.CharField(max_length=15)
-    best_way_contact = models.CharField(max_length=20)
+    service_requirements = models.CharField(max_length=55)
+    beverages = models.CharField(max_length=55)
+    best_way_contact = models.CharField(max_length=55)
     booked_by = models.ForeignKey(Client, on_delete=models.CASCADE)
 
     def __str__(self):
