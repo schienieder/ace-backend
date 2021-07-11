@@ -32,6 +32,7 @@ class AccountSerializer(serializers.ModelSerializer):
                 first_name=request.data["first_name"],
                 last_name=request.data["last_name"],
                 mobile_number=request.data["mobile_number"],
+                email=request.data["email"],
                 account=account,
             )
             client.save()
@@ -40,6 +41,7 @@ class AccountSerializer(serializers.ModelSerializer):
                 first_name=request.data["first_name"],
                 last_name=request.data["last_name"],
                 mobile_number=request.data["mobile_number"],
+                email=request.data["email"],
                 account=account,
             )
             partner.save()
@@ -68,8 +70,19 @@ class ClientSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         client = Client.objects.get(account=instance)
+        if getattr(client, "mobile_number") != validated_data["mobile_number"]:
+            setattr(client, "mobile_number", validated_data["mobile_number"])
+        else:
+            validated_data.pop("mobile_number")
+
+        if getattr(client, "email") != validated_data["email"]:
+            setattr(client, "email", validated_data["email"])
+        else:
+            validated_data.pop("email")
+
         for (key, value) in validated_data.items():
             setattr(client, key, value)
+
         client.save()
         return client
 
@@ -94,16 +107,21 @@ class BusinessPartnerSerializer(serializers.ModelSerializer):
         extra_kwargs = {"id": {"read_only": True}}
 
     def update(self, instance, validated_data):
-        # mobile_number = validated_data.pop("mobile_number")
-        # email = validated_data.pop("email")
         partner = BusinessPartner.objects.get(account=instance)
+
+        if getattr(partner, "mobile_number") != validated_data["mobile_number"]:
+            setattr(partner, "mobile_number", validated_data["mobile_number"])
+        else:
+            validated_data.pop("mobile_number")
+
+        if getattr(partner, "email") != validated_data["email"]:
+            setattr(partner, "email", validated_data["email"])
+        else:
+            yeah = validated_data.pop("email")
+            print(yeah, "heeeeeeeey!!!!")
+
         for (key, value) in validated_data.items():
             setattr(partner, key, value)
+
         partner.save()
-        # if partner["mobile_number"] != mobile_number:
-        #     partner.setattr(partner, "mobile_number", mobile_number)
-        #     partner.save()
-        # if partner["email"] != email:
-        #     partner.setattr(partner, "email", email)
-        #     partner.save()
         return partner

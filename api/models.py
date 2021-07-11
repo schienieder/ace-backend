@@ -12,8 +12,8 @@ class Account(AbstractUser):
 class Admin(models.Model):
     first_name = models.CharField(max_length=150)
     last_name = models.CharField(max_length=150)
-    mobile_number = models.CharField(max_length=150, unique=True, null=True)
-    email = models.EmailField(max_length=255, unique=True, null=True, blank=True)
+    mobile_number = models.CharField(max_length=150, unique=True)
+    email = models.EmailField(max_length=150, unique=True)
     account = models.ForeignKey(Account, on_delete=models.CASCADE)
 
     def __str__(self):
@@ -23,8 +23,8 @@ class Admin(models.Model):
 class Client(models.Model):
     first_name = models.CharField(max_length=150)
     last_name = models.CharField(max_length=150)
-    mobile_number = models.CharField(max_length=150, unique=True, null=True)
-    email = models.EmailField(max_length=255, unique=True, null=True, blank=True)
+    mobile_number = models.CharField(max_length=150, unique=True)
+    email = models.EmailField(max_length=150, unique=True)
     sex = models.IntegerField(null=True, blank=True)
     birthdate = models.DateField(null=True, blank=True)
     street_address = models.CharField(max_length=255, blank=True)
@@ -40,8 +40,8 @@ class Client(models.Model):
 class BusinessPartner(models.Model):
     first_name = models.CharField(max_length=150)
     last_name = models.CharField(max_length=150)
-    mobile_number = models.CharField(max_length=150, unique=True, null=True)
-    email = models.EmailField(max_length=255, unique=True, null=True, blank=True)
+    mobile_number = models.CharField(max_length=150, unique=True)
+    email = models.EmailField(max_length=150, unique=True)
     business_name = models.CharField(max_length=255, blank=True)
     type_of_business = models.CharField(max_length=150, blank=True)
     street_address = models.CharField(max_length=255, blank=True)

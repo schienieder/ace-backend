@@ -1,16 +1,15 @@
-"""
-from django.db.models.signals import post_save
+from django.db.models.signals import post_delete
 from django.dispatch import receiver
-from api.models import Account, Profile, BusinessPartner
+from api.models import Account, Client, BusinessPartner
 
 # signals here
-@receiver(post_save, sender = Account, dispatch_uid = "create_profile")
-def create_profile(sender, instance, created, **kwargs):
-    if (created and instance.role != 'partner'):
-        Profile.objects.create(account = instance)
+@receiver(post_delete, sender=Client, dispatch_uid="delete_client_account_signal")
+def delete_client_account(sender, instance, *args, **kwargs):
+    Account.objects.filter(id=instance.account.id).delete()
 
-@receiver(post_save, sender = Account, dispatch_uid = "create_partner")
-def create_partner(sender, instance, created, **kwargs):
-    if (created and instance.role == 'partner'):
-        BusinessPartner.objects.create(account = instance)
-"""
+
+@receiver(
+    post_delete, sender=BusinessPartner, dispatch_uid="delete_partner_account_signal"
+)
+def delete_partner_account(sender, instance, *args, **kwargs):
+    Account.objects.filter(id=instance.account.id).delete()
