@@ -194,6 +194,23 @@ class GetClientBookingView(generics.RetrieveAPIView):
         return Response(serializer.data)
 
 
+class DestroyEventBookingView(generics.DestroyAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = EventBookingSerializer
+
+    def get_queryset(self):
+        queryset = EventBookings.objects.filter(pk=self.kwargs["pk"])
+        return queryset
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return Response(
+            {"message": "Booking Deleted Successfully!"},
+            status=status.HTTP_204_NO_CONTENT,
+        )
+
+
 # LIST VIEWS
 class AllBusinessPartnersView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]

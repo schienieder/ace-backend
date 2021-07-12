@@ -14,6 +14,7 @@ from api.views import (
     DestroyPartnerProfileView,
     CreateBookingView,
     GetClientBookingView,
+    DestroyEventBookingView,
     AllBusinessPartnersView,
     AllClientsView,
     AllClientBookingsView,
@@ -60,6 +61,11 @@ urlpatterns = [
     path("add_booking/", CreateBookingView.as_view(), name="createBookings"),
     path(
         "client_booking/<int:pk>", GetClientBookingView.as_view(), name="clientBooking"
+    ),
+    path(
+        "client_booking/destroy/<int:pk>",
+        DestroyEventBookingView.as_view(),
+        name="eventBookingDestroy",
     ),
     # LIST VIEW PATHS
     path(
