@@ -10,8 +10,9 @@ from api.serializers import (
     ClientSerializer,
     BusinessPartnerSerializer,
     EventBookingSerializer,
+    EventSerializer,
 )
-from api.models import Account, Client, BusinessPartner, EventBookings
+from api.models import Account, Client, BusinessPartner, EventBookings, Event
 
 # Create your views here.
 class CreateAccountView(generics.CreateAPIView):
@@ -211,6 +212,23 @@ class DestroyEventBookingView(generics.DestroyAPIView):
         )
 
 
+# EVENT VIEWS
+class CreateEventView(generics.CreateAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = EventSerializer
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.serializer_class(
+            data=request.data, context={"request": request}
+        )
+
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 # LIST VIEWS
 class AllBusinessPartnersView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
@@ -228,3 +246,9 @@ class AllClientBookingsView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = EventBookingSerializer
     queryset = EventBookings.objects.all()
+
+
+class AllEventsView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = EventSerializer
+    queryset = Event.objects.all()

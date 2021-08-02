@@ -70,6 +70,18 @@ class EventBookings(models.Model):
         return self.booked_by.first_name + " " + self.booked_by.last_name
 
 
+class Event(models.Model):
+    event_name = models.CharField(max_length=200)
+    venue = models.CharField(max_length=150)
+    event_date = models.DateField()
+    time_schedule = models.TimeField()
+    event_budget = models.IntegerField()
+    client = models.ForeignKey(Client, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.event_name
+
+
 """
 class InterviewSchedules(models.Model):
 """

@@ -15,9 +15,11 @@ from api.views import (
     CreateBookingView,
     GetClientBookingView,
     DestroyEventBookingView,
+    CreateEventView,
     AllBusinessPartnersView,
     AllClientsView,
     AllClientBookingsView,
+    AllEventsView,
 )
 
 urlpatterns = [
@@ -67,10 +69,13 @@ urlpatterns = [
         DestroyEventBookingView.as_view(),
         name="eventBookingDestroy",
     ),
+    # EVENT VIEW PATHS
+    path("add_event/", CreateEventView.as_view(), name="createEvents"),
     # LIST VIEW PATHS
     path(
         "partners_list/", AllBusinessPartnersView.as_view(), name="allBusinessPartners"
     ),
     path("clients_list/", AllClientsView.as_view(), name="allClients"),
     path("bookings_list/", AllClientBookingsView.as_view(), name="allBookings"),
+    path("events_list/", AllEventsView.as_view(), name="allEvents"),
 ]

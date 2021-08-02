@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from api.models import Account, Admin, Client, BusinessPartner, EventBookings
+from api.models import Account, Admin, Client, BusinessPartner, EventBookings, Event
 
 
 class AccountSerializer(serializers.ModelSerializer):
@@ -148,3 +148,22 @@ class EventBookingSerializer(serializers.ModelSerializer):
         )
         booking.save()
         return booking
+
+
+class EventSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Event
+        fields = "__all__"
+        extra_kwargs = {"id": {"read_only": True}}
+
+    def create(self, validated_data):
+        event = Event.objects.create(
+            event_name=validated_data["event_name"],
+            venue=validated_data["venue"],
+            event_date=validated_data["event_date"],
+            time_schedule=validated_data["time_schedule"],
+            event_budget=validated_data["event_budget"],
+            client=validated_data["client"],
+        )
+        event.save()
+        return event
