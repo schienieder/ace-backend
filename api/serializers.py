@@ -16,13 +16,12 @@ class AccountSerializer(serializers.ModelSerializer):
             username=validated_data["username"], role=validated_data["role"]
         )
         account.set_password(validated_data["password"])
-        account.save()
         request = self.context["request"]
         if validated_data["role"] == "admin":
             admin = Admin.objects.create(
                 first_name=request.data["first_name"],
                 last_name=request.data["last_name"],
-                mobile_number=request.data["last_name"],
+                mobile_number=request.data["mobile_number"],
                 email=request.data["email"],
                 account=account,
             )
@@ -45,6 +44,7 @@ class AccountSerializer(serializers.ModelSerializer):
                 account=account,
             )
             partner.save()
+        account.save()
         print(request.data)
         return account
 

@@ -33,6 +33,9 @@ class Client(models.Model):
     postal_zip = models.IntegerField(null=True, blank=True)
     account = models.ForeignKey(Account, on_delete=models.CASCADE)
 
+    class Meta:
+        ordering = ["-account"]
+
     def __str__(self):
         return self.first_name + " " + self.last_name
 
@@ -49,6 +52,9 @@ class BusinessPartner(models.Model):
     state_province = models.CharField(max_length=150, blank=True)
     postal_zip = models.IntegerField(null=True, blank=True)
     account = models.ForeignKey(Account, on_delete=models.CASCADE)
+
+    class Meta:
+        ordering = ["-account"]
 
     def __str__(self):
         return self.first_name + " " + self.last_name
