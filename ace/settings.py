@@ -105,7 +105,7 @@ DATABASES = {
         "ENGINE": "django.db.backends.postgresql_psycopg2",
         "NAME": "alas_creative_events_db",
         "USER": "postgres",
-        "PASSWORD": env("DATABASE_PASS"),
+        "PASSWORD": "Nakalimotko16!",
         "HOST": "127.0.0.1",
         "PORT": "5432",
     }
