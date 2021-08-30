@@ -103,8 +103,8 @@ WSGI_APPLICATION = "ace.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql_psycopg2",
-        "NAME": env("DATABASE_NAME"),
-        "USER": env("DATABASE_USER"),
+        "NAME": "alas_creative_events_db",
+        "USER": "postgres",
         "PASSWORD": env("DATABASE_PASS"),
         "HOST": "127.0.0.1",
         "PORT": "5432",
