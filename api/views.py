@@ -12,8 +12,16 @@ from api.serializers import (
     BusinessPartnerSerializer,
     EventBookingSerializer,
     EventSerializer,
+    InterviewSerializer,
 )
-from api.models import Account, Client, BusinessPartner, EventBookings, Event
+from api.models import (
+    Account,
+    Client,
+    BusinessPartner,
+    EventBookings,
+    Event,
+    InterviewSchedule,
+)
 
 # Create your views here.
 class CreateAccountView(generics.CreateAPIView):
@@ -211,6 +219,13 @@ class DestroyEventBookingView(generics.DestroyAPIView):
             {"message": "Booking Deleted Successfully!"},
             status=status.HTTP_204_NO_CONTENT,
         )
+
+
+# INTERVIEW SCHEDULE VIEWS
+class CreateInterviewView(generics.CreateAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = InterviewSerializer
+    queryset = InterviewSchedule.objects.all()
 
 
 # EVENT VIEWS

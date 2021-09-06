@@ -78,7 +78,7 @@ class EventBookings(models.Model):
 
 class Event(models.Model):
     event_name = models.CharField(max_length=200)
-    venue = models.CharField(max_length=150)
+    venue = models.CharField(max_length=250)
     event_date = models.DateField()
     time_schedule = models.TimeField()
     event_budget = models.IntegerField()
@@ -88,6 +88,12 @@ class Event(models.Model):
         return self.event_name
 
 
-"""
-class InterviewSchedules(models.Model):
-"""
+class InterviewSchedule(models.Model):
+    location = models.CharField(max_length=250)
+    date = models.DateField()
+    time = models.TimeField()
+    client = models.ForeignKey(Client, on_delete=models.CASCADE)
+    booking = models.ForeignKey(EventBookings, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.client

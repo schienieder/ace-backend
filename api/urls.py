@@ -15,6 +15,7 @@ from api.views import (
     CreateBookingView,
     GetClientBookingView,
     DestroyEventBookingView,
+    CreateInterviewView,
     CreateEventView,
     AllBusinessPartnersView,
     AllClientsView,
@@ -69,6 +70,8 @@ urlpatterns = [
         DestroyEventBookingView.as_view(),
         name="eventBookingDestroy",
     ),
+    # INTERVIEW SCHEDULE VIEW PATHS
+    path("add_interview/", CreateInterviewView.as_view(), name="createInterview"),
     # EVENT VIEW PATHS
     path("add_event/", CreateEventView.as_view(), name="createEvents"),
     # LIST VIEW PATHS
