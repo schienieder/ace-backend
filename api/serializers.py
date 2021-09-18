@@ -110,23 +110,21 @@ class BusinessPartnerSerializer(serializers.ModelSerializer):
             "city",
             "state_province",
             "postal_zip",
+            "services_offered",
             "account",
         ]
         extra_kwargs = {"id": {"read_only": True}}
 
     def update(self, instance, validated_data):
         partner = BusinessPartner.objects.get(account=instance)
+        print("Previous mobile number: ", getattr(partner, "mobile_number"))
+        print("New mobile number: ", validated_data["mobile_number"])
 
-        if getattr(partner, "mobile_number") != validated_data["mobile_number"]:
-            setattr(partner, "mobile_number", validated_data["mobile_number"])
-        else:
+        if getattr(partner, "mobile_number") == validated_data["mobile_number"]:
             validated_data.pop("mobile_number")
 
-        if getattr(partner, "email") != validated_data["email"]:
-            setattr(partner, "email", validated_data["email"])
-        else:
-            partner_email = validated_data.pop("email")
-            print(partner_email, " this is the partner's email!")
+        if getattr(partner, "email") == validated_data["email"]:
+            validated_data.pop("email")
 
         for (key, value) in validated_data.items():
             setattr(partner, key, value)

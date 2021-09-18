@@ -21,6 +21,7 @@ from api.views import (
     AllClientsView,
     AllClientBookingsView,
     AllEventsView,
+    AdminGetPartnerView,
 )
 
 urlpatterns = [
@@ -81,4 +82,6 @@ urlpatterns = [
     path("clients_list/", AllClientsView.as_view(), name="allClients"),
     path("bookings_list/", AllClientBookingsView.as_view(), name="allBookings"),
     path("events_list/", AllEventsView.as_view(), name="allEvents"),
+    # ADMIN VIEW PATHS
+    path("admin_partner/<int:pk>", AdminGetPartnerView.as_view(), name="adminPartner"),
 ]

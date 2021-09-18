@@ -4,7 +4,7 @@ from rest_framework import generics
 from rest_framework import views
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 from rest_framework.exceptions import AuthenticationFailed
 from api.serializers import (
     AccountSerializer,
@@ -110,6 +110,21 @@ class AdminGetPartnerView(generics.RetrieveAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = BusinessPartnerSerializer
     queryset = BusinessPartner.objects.all()
+
+    def get_queryset(self):
+        return self.queryset
+
+    def get_object(self):
+        print("The fvcking url param is: ", self.kwargs["pk"])
+        queryset = self.get_queryset()
+        pid = self.kwargs["pk"]
+        queryset = get_object_or_404(BusinessPartner, pk=pid)
+        return queryset
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
 
 
 class GetPartnerProfileView(generics.RetrieveAPIView):

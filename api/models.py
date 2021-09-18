@@ -51,6 +51,7 @@ class BusinessPartner(models.Model):
     city = models.CharField(max_length=150, blank=True)
     state_province = models.CharField(max_length=150, blank=True)
     postal_zip = models.IntegerField(null=True, blank=True)
+    services_offered = models.TextField(null=True, blank=True)
     account = models.ForeignKey(Account, on_delete=models.CASCADE)
 
     class Meta:
