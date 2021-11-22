@@ -54,7 +54,7 @@ urlpatterns = [
     path(
         "partner_profile/update",
         UpdatePartnerProfileView.as_view(),
-        name="clientProfileUpdate",
+        name="partnerProfileUpdate",
     ),
     path(
         "partner_profile/destroy/<int:pk>",

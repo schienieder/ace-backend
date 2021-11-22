@@ -85,7 +85,7 @@ class UpdateClientProfileView(generics.UpdateAPIView):
         if serializer.is_valid(raise_exception=True):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.error, status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class DestroyClientProfileView(generics.DestroyAPIView):
@@ -162,7 +162,7 @@ class UpdatePartnerProfileView(generics.UpdateAPIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
 
-        return Response(serializer.error, status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class DestroyPartnerProfileView(generics.DestroyAPIView):
