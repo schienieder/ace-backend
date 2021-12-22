@@ -52,6 +52,20 @@ class AdminGetClientView(generics.RetrieveAPIView):
     serializer_class = ClientSerializer
     queryset = Client.objects.all()
 
+    def get_queryset(self):
+        return self.queryset
+
+    def get_object(self):
+        queryset = self.get_queryset()
+        pid = self.kwargs["pk"]
+        queryset = get_object_or_404(Client, pk=pid)
+        return queryset
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
 
 class GetClientProfileView(generics.RetrieveAPIView):
     permission_classes = [IsAuthenticated]
@@ -115,7 +129,6 @@ class AdminGetPartnerView(generics.RetrieveAPIView):
         return self.queryset
 
     def get_object(self):
-        print("The fvcking url param is: ", self.kwargs["pk"])
         queryset = self.get_queryset()
         pid = self.kwargs["pk"]
         queryset = get_object_or_404(BusinessPartner, pk=pid)
