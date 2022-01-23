@@ -1,5 +1,16 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.utils.translation import gettext_lazy as _
+from django.utils import timezone
+
+
+def upload_to(instance, filename):
+    now = timezone.now()
+    milliseconds = now.microsecond
+    return "posts/{milliseconds}{filename}".format(
+        filename=filename, milliseconds=milliseconds
+    )
+
 
 # Create your models here.
 class Account(AbstractUser):
@@ -21,6 +32,12 @@ class Admin(models.Model):
 
 
 class Client(models.Model):
+    profile_image = models.ImageField(
+        _("Image"),
+        null=True,
+        blank=True,
+        upload_to=upload_to,
+    )
     first_name = models.CharField(max_length=150)
     last_name = models.CharField(max_length=150)
     mobile_number = models.CharField(max_length=150, unique=True)
@@ -64,13 +81,11 @@ class BusinessPartner(models.Model):
 class EventBookings(models.Model):
     type_of_event = models.CharField(max_length=55)
     venue_name = models.CharField(max_length=150)
-    event_budget = models.IntegerField()
+    event_budget = models.IntegerField(null=True, blank=True)
     desired_date = models.DateField()
-    time_schedule = models.TimeField()
+    time_schedule = models.CharField(max_length=30)
     guests_no = models.IntegerField()
-    service_requirements = models.CharField(max_length=55)
-    beverages = models.CharField(max_length=55)
-    best_way_contact = models.CharField(max_length=55)
+    status = models.CharField(max_length=10, default="Pending")
     booked_by = models.ForeignKey(Client, on_delete=models.CASCADE)
 
     def __str__(self):
@@ -79,14 +94,19 @@ class EventBookings(models.Model):
 
 class Event(models.Model):
     event_name = models.CharField(max_length=200)
-    venue = models.CharField(max_length=250)
+    venue_name = models.CharField(max_length=250)
+    venue_lat = models.DecimalField(max_digits=30, decimal_places=10, default=7.45)
+    venue_long = models.DecimalField(max_digits=30, decimal_places=10, default=125.8)
     event_date = models.DateField()
-    time_schedule = models.TimeField()
+    time_schedule = models.CharField(max_length=30)
     event_budget = models.IntegerField()
     client = models.ForeignKey(Client, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.event_name
+
+    class Meta:
+        ordering = ["event_date"]
 
 
 class InterviewSchedule(models.Model):

@@ -13,10 +13,13 @@ from api.views import (
     UpdatePartnerProfileView,
     DestroyPartnerProfileView,
     CreateBookingView,
+    GetBookingView,
     GetClientBookingView,
     DestroyEventBookingView,
     CreateInterviewView,
     CreateEventView,
+    GetEventView,
+    DestroyEventView,
     AllBusinessPartnersView,
     AllClientsView,
     AllClientBookingsView,
@@ -64,6 +67,7 @@ urlpatterns = [
     ),
     # BOOKING VIEW PATHS
     path("add_booking/", CreateBookingView.as_view(), name="createBookings"),
+    path("booking/<int:pk>", GetBookingView.as_view(), name="bookingView"),
     path(
         "client_booking/<int:pk>", GetClientBookingView.as_view(), name="clientBooking"
     ),
@@ -76,6 +80,8 @@ urlpatterns = [
     path("add_interview/", CreateInterviewView.as_view(), name="createInterview"),
     # EVENT VIEW PATHS
     path("add_event/", CreateEventView.as_view(), name="createEvents"),
+    path("event/<int:pk>", GetEventView.as_view(), name="eventView"),
+    path("event/destroy/<int:pk>", DestroyEventView.as_view(), name="eventDestroy"),
     # LIST VIEW PATHS
     path(
         "partners_list/", AllBusinessPartnersView.as_view(), name="allBusinessPartners"

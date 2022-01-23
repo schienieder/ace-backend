@@ -62,6 +62,7 @@ class ClientSerializer(serializers.ModelSerializer):
         model = Client
         fields = [
             "id",
+            "profile_image",
             "first_name",
             "last_name",
             "mobile_number",
@@ -74,18 +75,19 @@ class ClientSerializer(serializers.ModelSerializer):
             "postal_zip",
             "account",
         ]
-        extra_kwargs = {"id": {"read_only": True}}
+        extra_kwargs = {
+            "id": {"read_only": True},
+            "account": {"read_only": True},
+        }
 
     def update(self, instance, validated_data):
-        client = Client.objects.get(account=instance)
-        if getattr(client, "mobile_number") != validated_data["mobile_number"]:
-            setattr(client, "mobile_number", validated_data["mobile_number"])
-        else:
+
+        client = instance
+
+        if getattr(client, "mobile_number") == validated_data["mobile_number"]:
             validated_data.pop("mobile_number")
 
-        if getattr(client, "email") != validated_data["email"]:
-            setattr(client, "email", validated_data["email"])
-        else:
+        if getattr(client, "email") == validated_data["email"]:
             validated_data.pop("email")
 
         for (key, value) in validated_data.items():
@@ -165,7 +167,9 @@ class EventSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         event = Event.objects.create(
             event_name=validated_data["event_name"],
-            venue=validated_data["venue"],
+            venue_name=validated_data["venue_name"],
+            venue_lat=validated_data["venue_lat"],
+            venue_long=validated_data["venue_long"],
             event_date=validated_data["event_date"],
             time_schedule=validated_data["time_schedule"],
             event_budget=validated_data["event_budget"],

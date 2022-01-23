@@ -14,6 +14,7 @@ import django_heroku
 from pathlib import Path
 from datetime import timedelta
 import environ
+import os
 
 env = environ.Env()
 environ.Env.read_env()
@@ -149,6 +150,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 
 STATIC_URL = "/static/"
+MEDIA_URL = "/media/"
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 AUTH_USER_MODEL = "api.Account"
 CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOWED_ORIGINS = ["http://localhost:3000"]

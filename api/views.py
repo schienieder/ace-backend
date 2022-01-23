@@ -22,6 +22,7 @@ from api.models import (
     Event,
     InterviewSchedule,
 )
+from rest_framework.parsers import MultiPartParser, FormParser
 
 # Create your views here.
 class CreateAccountView(generics.CreateAPIView):
@@ -77,7 +78,7 @@ class GetClientProfileView(generics.RetrieveAPIView):
 
     def get_object(self):
         queryset = self.get_queryset()
-        queryset = Client.objects.filter(account__id=self.request.user.id).first()
+        queryset = Client.objects.get(account__id=self.request.user.id)
         return queryset
 
     def retrieve(self, request, *args, **kwargs):
@@ -86,20 +87,34 @@ class GetClientProfileView(generics.RetrieveAPIView):
         return Response(serializer.data)
 
 
-class UpdateClientProfileView(generics.UpdateAPIView):
+class UpdateClientProfileView(views.APIView):
     permission_classes = [IsAuthenticated]
-    serializer_class = ClientSerializer
-    queryset = Client.objects.all()
+    parser_classes = [MultiPartParser, FormParser]
 
-    def update(self, request, *args, **kwargs):
-        serializer = self.serializer_class(
-            request.user, data=request.data, partial=True
-        )
-
+    def post(self, request, format=None):
+        client = Client.objects.get(account__id=request.user.id)
+        serializer = ClientSerializer(client, data=request.data, partial=True)
         if serializer.is_valid(raise_exception=True):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+# class UpdateClientProfileView(generics.UpdateAPIView):
+#     permission_classes = [IsAuthenticated]
+#     parser_classes = [MultiPartParser, FormParser]
+#     serializer_class = ClientSerializer
+#     queryset = Client.objects.all()
+
+#     def update(self, request, *args, **kwargs):
+#         serializer = self.serializer_class(
+#             request.user, data=request.data, partial=True
+#         )
+
+#         if serializer.is_valid(raise_exception=True):
+#             serializer.save()
+#             return Response(serializer.data, status=status.HTTP_200_OK)
+#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class DestroyClientProfileView(generics.DestroyAPIView):
@@ -150,9 +165,7 @@ class GetPartnerProfileView(generics.RetrieveAPIView):
 
     def get_object(self):
         queryset = self.get_queryset()
-        queryset = BusinessPartner.objects.filter(
-            account__id=self.request.user.id
-        ).first()
+        queryset = BusinessPartner.objects.get(account__id=self.request.user.id)
         return queryset
 
     def retrieve(self, request, *args, **kwargs):
@@ -210,6 +223,12 @@ class CreateBookingView(generics.CreateAPIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class GetBookingView(generics.RetrieveAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = EventBookingSerializer
+    queryset = EventBookings.objects.all()
 
 
 class GetClientBookingView(generics.RetrieveAPIView):
@@ -271,6 +290,18 @@ class CreateEventView(generics.CreateAPIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class GetEventView(generics.RetrieveAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = EventSerializer
+    queryset = Event.objects.all()
+
+
+class DestroyEventView(generics.DestroyAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = EventSerializer
+    queryset = Event.objects.all()
 
 
 # LIST VIEWS
