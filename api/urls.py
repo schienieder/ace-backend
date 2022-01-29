@@ -17,13 +17,25 @@ from api.views import (
     GetClientBookingView,
     DestroyEventBookingView,
     CreateInterviewView,
+    GetInterviewView,
+    DestroyInterviewView,
     CreateEventView,
     GetEventView,
     DestroyEventView,
+    CreateAffiliationView,
+    GetAffiliationView,
+    UpdateRequestView,
     AllBusinessPartnersView,
     AllClientsView,
     AllClientBookingsView,
     AllEventsView,
+    AllInterviewsView,
+    AllAffiliationsView,
+    AllRequestsView,
+    AllAcceptedTasksView,
+    AllEventTasksView,
+    AllTasksView,
+    AllCompletedTaskView,
     AdminGetPartnerView,
     AdminGetClientView,
 )
@@ -78,10 +90,19 @@ urlpatterns = [
     ),
     # INTERVIEW SCHEDULE VIEW PATHS
     path("add_interview/", CreateInterviewView.as_view(), name="createInterview"),
+    path("interview/<int:pk>", GetInterviewView.as_view(), name="interviewView"),
+    path(
+        "interview/destroy/<int:pk>",
+        DestroyInterviewView.as_view(),
+        name="interviewDestroy",
+    ),
     # EVENT VIEW PATHS
     path("add_event/", CreateEventView.as_view(), name="createEvents"),
     path("event/<int:pk>", GetEventView.as_view(), name="eventView"),
     path("event/destroy/<int:pk>", DestroyEventView.as_view(), name="eventDestroy"),
+    # AFFILIATIONS VIEW PATHS
+    path("add_affiliation/", CreateAffiliationView.as_view(), name="createAffiliation"),
+    path("affiliation/<int:pk>", GetAffiliationView.as_view(), name="affiliationView"),
     # LIST VIEW PATHS
     path(
         "partners_list/", AllBusinessPartnersView.as_view(), name="allBusinessPartners"
@@ -89,6 +110,34 @@ urlpatterns = [
     path("clients_list/", AllClientsView.as_view(), name="allClients"),
     path("bookings_list/", AllClientBookingsView.as_view(), name="allBookings"),
     path("events_list/", AllEventsView.as_view(), name="allEvents"),
+    path("interviews_list/", AllInterviewsView.as_view(), name="allInterviews"),
+    path("affiliations_list/", AllAffiliationsView.as_view(), name="allAffiliations"),
+    path(
+        "requests_list/<int:pk>",
+        AllRequestsView.as_view(),
+        name="allPartnerRequests",
+    ),
+    path(
+        "accepted_list/<int:pk>",
+        AllAcceptedTasksView.as_view(),
+        name="allAcceptedRequests",
+    ),
+    path(
+        "event_tasks/<int:pk>",
+        AllEventTasksView.as_view(),
+        name="allEventTasks",
+    ),
+    path(
+        "tasks_list/",
+        AllTasksView.as_view(),
+        name="allTasks",
+    ),
+    path(
+        "completed_list/",
+        AllCompletedTaskView.as_view(),
+        name="allCompletedTasks",
+    ),
+    path("request_update/<int:pk>", UpdateRequestView.as_view(), name="requestUpdate"),
     # ADMIN VIEW PATHS
     path("admin_partner/<int:pk>", AdminGetPartnerView.as_view(), name="adminPartner"),
     path("admin_client/<int:pk>", AdminGetClientView.as_view(), name="adminClient"),

@@ -2,6 +2,7 @@ from rest_framework import serializers
 from api.models import (
     Account,
     Admin,
+    AffiliationRequest,
     Client,
     BusinessPartner,
     EventBookings,
@@ -115,10 +116,13 @@ class BusinessPartnerSerializer(serializers.ModelSerializer):
             "services_offered",
             "account",
         ]
-        extra_kwargs = {"id": {"read_only": True}}
+        extra_kwargs = {
+            "id": {"read_only": True},
+            "account": {"read_only": True},
+        }
 
     def update(self, instance, validated_data):
-        partner = BusinessPartner.objects.get(account=instance)
+        partner = instance
         print("Previous mobile number: ", getattr(partner, "mobile_number"))
         print("New mobile number: ", validated_data["mobile_number"])
 
@@ -179,3 +183,10 @@ class InterviewSerializer(serializers.ModelSerializer):
         )
         interview.save()
         return interview
+
+
+class AffiliationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AffiliationRequest
+        fields = "__all__"
+        extra_kwargs = {"id": {"read_only": True}}

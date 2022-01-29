@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "rest_framework",
     "corsheaders",
+    "channels",
 ]
 
 REST_FRAMEWORK = {
@@ -162,3 +163,4 @@ CORS_ALLOWED_ORIGINS = ["http://localhost:3000"]
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 django_heroku.settings(locals())
+ASGI_APPLICATION = "ace.asgi.application"

@@ -8,6 +8,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 from rest_framework.exceptions import AuthenticationFailed
 from api.serializers import (
     AccountSerializer,
+    AffiliationSerializer,
     ClientSerializer,
     BusinessPartnerSerializer,
     EventBookingSerializer,
@@ -21,6 +22,7 @@ from api.models import (
     EventBookings,
     Event,
     InterviewSchedule,
+    AffiliationRequest,
 )
 from rest_framework.parsers import MultiPartParser, FormParser
 
@@ -174,21 +176,33 @@ class GetPartnerProfileView(generics.RetrieveAPIView):
         return Response(serializer.data)
 
 
-class UpdatePartnerProfileView(generics.UpdateAPIView):
+class UpdatePartnerProfileView(views.APIView):
     permission_classes = [IsAuthenticated]
-    serializer_class = BusinessPartnerSerializer
-    queryset = BusinessPartner.objects.all()
 
-    def update(self, request, *args, **kwargs):
-        serializer = self.serializer_class(
-            request.user, data=request.data, partial=True
-        )
-
+    def post(self, request, format=None):
+        partner = BusinessPartner.objects.get(account__id=request.user.id)
+        serializer = BusinessPartnerSerializer(partner, data=request.data, partial=True)
         if serializer.is_valid(raise_exception=True):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
-
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+# class UpdatePartnerProfileView(generics.UpdateAPIView):
+#     permission_classes = [IsAuthenticated]
+#     serializer_class = BusinessPartnerSerializer
+#     queryset = BusinessPartner.objects.all()
+
+#     def update(self, request, *args, **kwargs):
+#         serializer = self.serializer_class(
+#             request.user, data=request.data, partial=True
+#         )
+
+#         if serializer.is_valid(raise_exception=True):
+#             serializer.save()
+#             return Response(serializer.data, status=status.HTTP_200_OK)
+
+#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class DestroyPartnerProfileView(generics.DestroyAPIView):
@@ -275,6 +289,31 @@ class CreateInterviewView(generics.CreateAPIView):
     queryset = InterviewSchedule.objects.all()
 
 
+class GetInterviewView(generics.RetrieveAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = InterviewSerializer
+    queryset = InterviewSchedule.objects.all()
+
+    def get_queryset(self):
+        return self.queryset
+
+    def get_object(self):
+        queryset = self.get_queryset()
+        my_obj = get_object_or_404(queryset, client__id=self.kwargs["pk"])
+        return my_obj
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
+
+class DestroyInterviewView(generics.DestroyAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = InterviewSerializer
+    queryset = InterviewSchedule.objects.all()
+
+
 # EVENT VIEWS
 class CreateEventView(generics.CreateAPIView):
     permission_classes = [IsAuthenticated]
@@ -304,6 +343,35 @@ class DestroyEventView(generics.DestroyAPIView):
     queryset = Event.objects.all()
 
 
+# AFFILIATION VIEWS
+class CreateAffiliationView(generics.CreateAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = AffiliationSerializer
+    queryset = AffiliationRequest.objects.all()
+
+
+class GetAffiliationView(generics.RetrieveAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = AffiliationSerializer
+    queryset = AffiliationRequest.objects.all()
+
+
+class UpdateRequestView(generics.UpdateAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = AffiliationSerializer
+    queryset = AffiliationRequest.objects.all()
+
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.serializer_class(instance, data=request.data, partial=True)
+
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 # LIST VIEWS
 class AllBusinessPartnersView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
@@ -327,3 +395,80 @@ class AllEventsView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = EventSerializer
     queryset = Event.objects.all()
+
+
+class AllInterviewsView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = InterviewSerializer
+    queryset = InterviewSchedule.objects.all()
+
+
+class AllAffiliationsView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = AffiliationSerializer
+    queryset = AffiliationRequest.objects.all()
+
+
+class AllRequestsView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = AffiliationSerializer
+    queryset = AffiliationRequest.objects.all()
+
+    def get_queryset(self):
+        partner_id = self.kwargs["pk"]
+        return AffiliationRequest.objects.filter(
+            partner__id=partner_id, status="Pending"
+        )
+
+
+class AllAcceptedTasksView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = AffiliationSerializer
+    queryset = AffiliationRequest.objects.all()
+
+    def get_queryset(self):
+        partner_id = self.kwargs["pk"]
+        return AffiliationRequest.objects.filter(
+            partner__id=partner_id, status="Accepted"
+        )
+
+
+class AllEventTasksView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = AffiliationSerializer
+    queryset = AffiliationSerializer
+
+    def get_queryset(self):
+        event_id = self.kwargs["pk"]
+        return AffiliationRequest.objects.filter(event__id=event_id, status="Accepted")
+
+
+class AllTasksView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = AffiliationSerializer
+    queryset = AffiliationSerializer
+
+    def get_queryset(self):
+        return AffiliationRequest.objects.filter(status="Accepted")
+
+
+class AllCompletedTaskView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = AffiliationSerializer
+    queryset = AffiliationRequest.objects.all()
+
+    def get_queryset(self):
+        return AffiliationRequest.objects.filter(
+            status="Accepted", task_status="Completed"
+        )
+
+
+# PROGRESS BAR
+# (1) FETCH DATA: all events, all event tasks, all completed tasks
+# (2) FORMULA: (completed tasks/total number of tasks) * 100
+# (3) PROCESS: outer loop events, inner loop completed tasks -> if event.id == task.event completed_task++ -> if finished store in array
+#
+#
+#
+#
+#

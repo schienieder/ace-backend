@@ -91,6 +91,9 @@ class EventBookings(models.Model):
     def __str__(self):
         return self.booked_by.first_name + " " + self.booked_by.last_name
 
+    class Meta:
+        ordering = ["desired_date"]
+
 
 class Event(models.Model):
     event_name = models.CharField(max_length=200)
@@ -112,9 +115,27 @@ class Event(models.Model):
 class InterviewSchedule(models.Model):
     location = models.CharField(max_length=250)
     date = models.DateField()
-    time = models.TimeField()
+    time = models.CharField(max_length=30)
     client = models.ForeignKey(Client, on_delete=models.CASCADE)
     booking = models.ForeignKey(EventBookings, on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.client
+        return self.client.first_name + " " + self.client.last_name
+
+    class Meta:
+        ordering = ["date"]
+
+
+class AffiliationRequest(models.Model):
+    event = models.ForeignKey(Event, on_delete=models.CASCADE)
+    partner = models.ForeignKey(BusinessPartner, on_delete=models.CASCADE)
+    task = models.CharField(max_length=150)
+    task_status = models.CharField(max_length=20, default="On Going", blank="True")
+    status = models.CharField(max_length=10, default="Pending", blank=True)
+    created_at = models.TimeField(auto_now_add=True, blank=True)
+
+    def __str__(self):
+        return self.event.event_name
+
+    class Meta:
+        ordering = ["-created_at"]
