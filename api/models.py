@@ -139,3 +139,60 @@ class AffiliationRequest(models.Model):
 
     class Meta:
         ordering = ["-created_at"]
+
+
+class Rating(models.Model):
+    event_name = models.CharField(max_length=200)
+    event_date = models.DateField()
+    venue_rate = models.IntegerField()
+    catering_rate = models.IntegerField()
+    styling_rate = models.IntegerField()
+    mc_rate = models.IntegerField()
+    presentation_rate = models.IntegerField()
+    courtesy_rate = models.IntegerField()
+
+    def __str__(self):
+        return self.event_name
+
+    class Meta:
+        ordering = ["pk"]
+
+
+class ClientRoom(models.Model):
+    room_name = models.CharField(max_length=50)
+    client = models.ForeignKey(Client, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.room_name
+
+
+class PartnerRoom(models.Model):
+    room_name = models.CharField(max_length=50)
+    partner = models.ForeignKey(BusinessPartner, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.room_name
+
+
+class GroupRoom(models.Model):
+    room_name = models.CharField(max_length=50)
+    room_key = models.CharField(max_length=50)
+
+    def __str__(self):
+        return self.room_name
+
+
+class ClientGroupRoom(models.Model):
+    client = models.ForeignKey(Client, on_delete=models.CASCADE)
+    group_room = models.ForeignKey(GroupRoom, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.group_room.room_name
+
+
+class PartnerGroupRoom(models.Model):
+    partner = models.ForeignKey(BusinessPartner, on_delete=models.CASCADE)
+    group_room = models.ForeignKey(GroupRoom, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.group_room.room_name

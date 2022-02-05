@@ -14,6 +14,12 @@ from api.serializers import (
     EventBookingSerializer,
     EventSerializer,
     InterviewSerializer,
+    RatingSerializer,
+    ClientRoomSerializer,
+    PartnerRoomSerializer,
+    GroupRoomSerializer,
+    ClientGroupRoomSerializer,
+    PartnerGroupRoomSerializer,
 )
 from api.models import (
     Account,
@@ -23,6 +29,12 @@ from api.models import (
     Event,
     InterviewSchedule,
     AffiliationRequest,
+    Rating,
+    ClientRoom,
+    PartnerRoom,
+    GroupRoom,
+    ClientGroupRoom,
+    PartnerGroupRoom,
 )
 from rest_framework.parsers import MultiPartParser, FormParser
 
@@ -337,6 +349,26 @@ class GetEventView(generics.RetrieveAPIView):
     queryset = Event.objects.all()
 
 
+class GetClientEventView(generics.RetrieveAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = EventSerializer
+    queryset = Event.objects.all()
+
+    def get_queryset(self):
+        return self.queryset
+
+    def get_object(self):
+        queryset = self.get_queryset()
+        client = Client.objects.get(account__id=self.request.user.id)
+        my_obj = get_object_or_404(queryset, client=client)
+        return my_obj
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
+
 class DestroyEventView(generics.DestroyAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = EventSerializer
@@ -370,6 +402,39 @@ class UpdateRequestView(generics.UpdateAPIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+# RATING VIEWS
+class CreateRatingView(generics.CreateAPIView):
+    permission_classes = [AllowAny]
+    serializer_class = RatingSerializer
+    queryset = Rating.objects.all()
+
+
+# GROUP ROOM VIEWS
+class CreateGroupRoom(generics.CreateAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = GroupRoomSerializer
+    queryset = GroupRoom.objects.all()
+
+
+class GetGroupRoom(generics.RetrieveAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = GroupRoomSerializer
+    queryset = GroupRoom.objects.all()
+    lookup_field = "room_key"
+
+
+class CreateClientGroupRoom(generics.CreateAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = ClientGroupRoomSerializer
+    queryset = ClientGroupRoom.objects.all()
+
+
+class CreatePartnerGroupRoom(generics.CreateAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = PartnerGroupRoomSerializer
+    queryset = PartnerGroupRoom.objects.all()
 
 
 # LIST VIEWS
@@ -463,12 +528,31 @@ class AllCompletedTaskView(generics.ListAPIView):
         )
 
 
-# PROGRESS BAR
-# (1) FETCH DATA: all events, all event tasks, all completed tasks
-# (2) FORMULA: (completed tasks/total number of tasks) * 100
-# (3) PROCESS: outer loop events, inner loop completed tasks -> if event.id == task.event completed_task++ -> if finished store in array
-#
-#
-#
-#
-#
+class AllClientRoomsView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = ClientRoomSerializer
+    queryset = ClientRoom.objects.all()
+
+
+class AllPartnerRoomsView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = PartnerRoomSerializer
+    queryset = PartnerRoom.objects.all()
+
+
+class AllGroupRooms(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = GroupRoomSerializer
+    queryset = GroupRoom.objects.all()
+
+
+class AllClientGroups(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = ClientGroupRoomSerializer
+    queryset = ClientGroupRoom.objects.all()
+
+
+class AllPartnerGroups(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = PartnerGroupRoomSerializer
+    queryset = PartnerGroupRoom.objects.all()

@@ -8,6 +8,12 @@ from api.models import (
     EventBookings,
     Event,
     InterviewSchedule,
+    Rating,
+    ClientRoom,
+    PartnerRoom,
+    GroupRoom,
+    ClientGroupRoom,
+    PartnerGroupRoom,
 )
 
 
@@ -44,6 +50,10 @@ class AccountSerializer(serializers.ModelSerializer):
                 account=account,
             )
             client.save()
+            client_room = ClientRoom.objects.create(
+                room_name=validated_data["username"], client=client
+            )
+            client_room.save()
         else:
             partner = BusinessPartner.objects.create(
                 first_name=request.data["first_name"],
@@ -53,6 +63,10 @@ class AccountSerializer(serializers.ModelSerializer):
                 account=account,
             )
             partner.save()
+            partner_room = PartnerRoom.objects.create(
+                room_name=validated_data["username"], partner=partner
+            )
+            partner_room.save()
         account.save()
         print(request.data)
         return account
@@ -188,5 +202,47 @@ class InterviewSerializer(serializers.ModelSerializer):
 class AffiliationSerializer(serializers.ModelSerializer):
     class Meta:
         model = AffiliationRequest
+        fields = "__all__"
+        extra_kwargs = {"id": {"read_only": True}}
+
+
+class RatingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Rating
+        fields = "__all__"
+        extra_kwargs = {"id": {"read_only": True}}
+
+
+class ClientRoomSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ClientRoom
+        fields = "__all__"
+        extra_kwargs = {"id": {"read_only": True}}
+
+
+class PartnerRoomSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PartnerRoom
+        fields = "__all__"
+        extra_kwargs = {"id": {"read_only": True}}
+
+
+class GroupRoomSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = GroupRoom
+        fields = "__all__"
+        extra_kwargs = {"id": {"read_only": True}}
+
+
+class ClientGroupRoomSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ClientGroupRoom
+        fields = "__all__"
+        extra_kwargs = {"id": {"read_only": True}}
+
+
+class PartnerGroupRoomSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PartnerGroupRoom
         fields = "__all__"
         extra_kwargs = {"id": {"read_only": True}}

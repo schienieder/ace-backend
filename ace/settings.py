@@ -38,6 +38,7 @@ ALLOWED_HOSTS = ["*"]
 # Application definition
 
 INSTALLED_APPS = [
+    "channels",
     "api.apps.ApiConfig",
     "django.contrib.admin",
     "django.contrib.auth",
@@ -47,7 +48,6 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "rest_framework",
     "corsheaders",
-    "channels",
 ]
 
 REST_FRAMEWORK = {
@@ -97,7 +97,8 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = "ace.wsgi.application"
-
+ASGI_APPLICATION = "ace.asgi.application"
+CHANNEL_LAYERS = {"default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}}
 
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
@@ -163,4 +164,3 @@ CORS_ALLOWED_ORIGINS = ["http://localhost:3000"]
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 django_heroku.settings(locals())
-ASGI_APPLICATION = "ace.asgi.application"

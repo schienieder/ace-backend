@@ -21,10 +21,16 @@ from api.views import (
     DestroyInterviewView,
     CreateEventView,
     GetEventView,
+    GetClientEventView,
     DestroyEventView,
     CreateAffiliationView,
     GetAffiliationView,
     UpdateRequestView,
+    CreateRatingView,
+    CreateGroupRoom,
+    GetGroupRoom,
+    CreateClientGroupRoom,
+    CreatePartnerGroupRoom,
     AllBusinessPartnersView,
     AllClientsView,
     AllClientBookingsView,
@@ -36,6 +42,11 @@ from api.views import (
     AllEventTasksView,
     AllTasksView,
     AllCompletedTaskView,
+    AllClientRoomsView,
+    AllPartnerRoomsView,
+    AllGroupRooms,
+    AllClientGroups,
+    AllPartnerGroups,
     AdminGetPartnerView,
     AdminGetClientView,
 )
@@ -99,10 +110,25 @@ urlpatterns = [
     # EVENT VIEW PATHS
     path("add_event/", CreateEventView.as_view(), name="createEvents"),
     path("event/<int:pk>", GetEventView.as_view(), name="eventView"),
+    path("client_event/<int:pk>", GetClientEventView.as_view(), name="clientEvent"),
     path("event/destroy/<int:pk>", DestroyEventView.as_view(), name="eventDestroy"),
     # AFFILIATIONS VIEW PATHS
     path("add_affiliation/", CreateAffiliationView.as_view(), name="createAffiliation"),
     path("affiliation/<int:pk>", GetAffiliationView.as_view(), name="affiliationView"),
+    path("request_update/<int:pk>", UpdateRequestView.as_view(), name="requestUpdate"),
+    # RATING VIEW PATHS
+    path("add_rating/", CreateRatingView.as_view(), name="addRating"),
+    # GROUP ROOM PATHS
+    path("add_group_room/", CreateGroupRoom.as_view(), name="addGroupRoom"),
+    path("group_room/<str:room_key>", GetGroupRoom.as_view(), name="groupRoom"),
+    path(
+        "add_client_group/", CreateClientGroupRoom.as_view(), name="addClientGroupRoom"
+    ),
+    path(
+        "add_partner_group/",
+        CreatePartnerGroupRoom.as_view(),
+        name="addPartnerGroupRoom",
+    ),
     # LIST VIEW PATHS
     path(
         "partners_list/", AllBusinessPartnersView.as_view(), name="allBusinessPartners"
@@ -137,7 +163,31 @@ urlpatterns = [
         AllCompletedTaskView.as_view(),
         name="allCompletedTasks",
     ),
-    path("request_update/<int:pk>", UpdateRequestView.as_view(), name="requestUpdate"),
+    path(
+        "client_rooms/",
+        AllClientRoomsView.as_view(),
+        name="allClientRooms",
+    ),
+    path(
+        "partner_rooms/",
+        AllPartnerRoomsView.as_view(),
+        name="allPartnerRooms",
+    ),
+    path(
+        "all_group_rooms/",
+        AllGroupRooms.as_view(),
+        name="allGroupRooms",
+    ),
+    path(
+        "all_client_groups/",
+        AllClientGroups.as_view(),
+        name="allClientGroups",
+    ),
+    path(
+        "all_partner_groups/",
+        AllPartnerGroups.as_view(),
+        name="allPartnerGroups",
+    ),
     # ADMIN VIEW PATHS
     path("admin_partner/<int:pk>", AdminGetPartnerView.as_view(), name="adminPartner"),
     path("admin_client/<int:pk>", AdminGetClientView.as_view(), name="adminClient"),
