@@ -27,6 +27,12 @@ from api.views import (
     GetAffiliationView,
     UpdateRequestView,
     CreateRatingView,
+    GetVenueRateForecast,
+    GetCateringRateForecast,
+    GetStylingRateForecast,
+    GetMCRateForecast,
+    GetPresentationRateForecast,
+    GetCoutesyRateForecast,
     CreateGroupRoom,
     GetGroupRoom,
     CreateClientGroupRoom,
@@ -118,6 +124,22 @@ urlpatterns = [
     path("request_update/<int:pk>", UpdateRequestView.as_view(), name="requestUpdate"),
     # RATING VIEW PATHS
     path("add_rating/", CreateRatingView.as_view(), name="addRating"),
+    path("venue_forecast/", GetVenueRateForecast.as_view(), name="venueForecast"),
+    path(
+        "catering_forecast/", GetCateringRateForecast.as_view(), name="cateringForecast"
+    ),
+    path("styling_forecast/", GetStylingRateForecast.as_view(), name="stylingForecast"),
+    path("mc_forecast/", GetMCRateForecast.as_view(), name="mcForecast"),
+    path(
+        "presentation_forecast/",
+        GetPresentationRateForecast.as_view(),
+        name="presentationForecast",
+    ),
+    path(
+        "coutesy_forecast/",
+        GetCoutesyRateForecast.as_view(),
+        name="coutesyForecast",
+    ),
     # GROUP ROOM PATHS
     path("add_group_room/", CreateGroupRoom.as_view(), name="addGroupRoom"),
     path("group_room/<str:room_key>", GetGroupRoom.as_view(), name="groupRoom"),

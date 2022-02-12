@@ -37,6 +37,7 @@ from api.models import (
     PartnerGroupRoom,
 )
 from rest_framework.parsers import MultiPartParser, FormParser
+from django.db.models import Avg
 
 # Create your views here.
 class CreateAccountView(generics.CreateAPIView):
@@ -409,6 +410,384 @@ class CreateRatingView(generics.CreateAPIView):
     permission_classes = [AllowAny]
     serializer_class = RatingSerializer
     queryset = Rating.objects.all()
+
+
+class GetVenueRateForecast(views.APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        january_rates = Rating.objects.filter(event_date__month="01").aggregate(
+            Avg("venue_rate")
+        )
+        february_rates = Rating.objects.filter(event_date__month="02").aggregate(
+            Avg("venue_rate")
+        )
+        march_rates = Rating.objects.filter(event_date__month="03").aggregate(
+            Avg("venue_rate")
+        )
+        april_rates = Rating.objects.filter(event_date__month="04").aggregate(
+            Avg("venue_rate")
+        )
+        may_rates = Rating.objects.filter(event_date__month="05").aggregate(
+            Avg("venue_rate")
+        )
+        june_rates = Rating.objects.filter(event_date__month="06").aggregate(
+            Avg("venue_rate")
+        )
+        july_rates = Rating.objects.filter(event_date__month="07").aggregate(
+            Avg("venue_rate")
+        )
+        august_rates = Rating.objects.filter(event_date__month="08").aggregate(
+            Avg("venue_rate")
+        )
+        september_rates = Rating.objects.filter(event_date__month="09").aggregate(
+            Avg("venue_rate")
+        )
+        october_rates = Rating.objects.filter(event_date__month="10").aggregate(
+            Avg("venue_rate")
+        )
+        november_rates = Rating.objects.filter(event_date__month="11").aggregate(
+            Avg("venue_rate")
+        )
+        december_rates = Rating.objects.filter(event_date__month="12").aggregate(
+            Avg("venue_rate")
+        )
+        venue_rates = [
+            {"month": "January", "venue": january_rates["venue_rate__avg"]},
+            {"month": "February", "venue": february_rates["venue_rate__avg"]},
+            {"month": "March", "venue": march_rates["venue_rate__avg"]},
+            {"month": "April", "venue": april_rates["venue_rate__avg"]},
+            {"month": "May", "venue": may_rates["venue_rate__avg"]},
+            {"month": "June", "venue": june_rates["venue_rate__avg"]},
+            {"month": "July", "venue": july_rates["venue_rate__avg"]},
+            {"month": "August", "venue": august_rates["venue_rate__avg"]},
+            {"month": "September", "venue": september_rates["venue_rate__avg"]},
+            {"month": "October", "venue": october_rates["venue_rate__avg"]},
+            {"month": "November", "venue": november_rates["venue_rate__avg"]},
+            {"month": "December", "venue": december_rates["venue_rate__avg"]},
+        ]
+        return Response(venue_rates)
+
+
+class GetCateringRateForecast(views.APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        january_rates = Rating.objects.filter(event_date__month="01").aggregate(
+            Avg("catering_rate")
+        )
+        february_rates = Rating.objects.filter(event_date__month="02").aggregate(
+            Avg("catering_rate")
+        )
+        march_rates = Rating.objects.filter(event_date__month="03").aggregate(
+            Avg("catering_rate")
+        )
+        april_rates = Rating.objects.filter(event_date__month="04").aggregate(
+            Avg("catering_rate")
+        )
+        may_rates = Rating.objects.filter(event_date__month="05").aggregate(
+            Avg("catering_rate")
+        )
+        june_rates = Rating.objects.filter(event_date__month="06").aggregate(
+            Avg("catering_rate")
+        )
+        july_rates = Rating.objects.filter(event_date__month="07").aggregate(
+            Avg("catering_rate")
+        )
+        august_rates = Rating.objects.filter(event_date__month="08").aggregate(
+            Avg("catering_rate")
+        )
+        september_rates = Rating.objects.filter(event_date__month="09").aggregate(
+            Avg("catering_rate")
+        )
+        october_rates = Rating.objects.filter(event_date__month="10").aggregate(
+            Avg("catering_rate")
+        )
+        november_rates = Rating.objects.filter(event_date__month="11").aggregate(
+            Avg("catering_rate")
+        )
+        december_rates = Rating.objects.filter(event_date__month="12").aggregate(
+            Avg("catering_rate")
+        )
+        catering_rates = [
+            {"month": "January", "catering": january_rates["catering_rate__avg"]},
+            {"month": "February", "catering": february_rates["catering_rate__avg"]},
+            {"month": "March", "catering": march_rates["catering_rate__avg"]},
+            {"month": "April", "catering": april_rates["catering_rate__avg"]},
+            {"month": "May", "catering": may_rates["catering_rate__avg"]},
+            {"month": "June", "catering": june_rates["catering_rate__avg"]},
+            {"month": "July", "catering": july_rates["catering_rate__avg"]},
+            {"month": "August", "catering": august_rates["catering_rate__avg"]},
+            {"month": "September", "catering": september_rates["catering_rate__avg"]},
+            {"month": "October", "catering": october_rates["catering_rate__avg"]},
+            {"month": "November", "catering": november_rates["catering_rate__avg"]},
+            {"month": "December", "catering": december_rates["catering_rate__avg"]},
+        ]
+        return Response(catering_rates)
+
+
+class GetStylingRateForecast(views.APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        january_rates = Rating.objects.filter(event_date__month="01").aggregate(
+            Avg("styling_rate")
+        )
+        february_rates = Rating.objects.filter(event_date__month="02").aggregate(
+            Avg("styling_rate")
+        )
+        march_rates = Rating.objects.filter(event_date__month="03").aggregate(
+            Avg("styling_rate")
+        )
+        april_rates = Rating.objects.filter(event_date__month="04").aggregate(
+            Avg("styling_rate")
+        )
+        may_rates = Rating.objects.filter(event_date__month="05").aggregate(
+            Avg("styling_rate")
+        )
+        june_rates = Rating.objects.filter(event_date__month="06").aggregate(
+            Avg("styling_rate")
+        )
+        july_rates = Rating.objects.filter(event_date__month="07").aggregate(
+            Avg("styling_rate")
+        )
+        august_rates = Rating.objects.filter(event_date__month="08").aggregate(
+            Avg("styling_rate")
+        )
+        september_rates = Rating.objects.filter(event_date__month="09").aggregate(
+            Avg("styling_rate")
+        )
+        october_rates = Rating.objects.filter(event_date__month="10").aggregate(
+            Avg("styling_rate")
+        )
+        november_rates = Rating.objects.filter(event_date__month="11").aggregate(
+            Avg("styling_rate")
+        )
+        december_rates = Rating.objects.filter(event_date__month="12").aggregate(
+            Avg("styling_rate")
+        )
+        styling_rates = [
+            {"month": "January", "styling": january_rates["styling_rate__avg"]},
+            {"month": "February", "styling": february_rates["styling_rate__avg"]},
+            {"month": "March", "styling": march_rates["styling_rate__avg"]},
+            {"month": "April", "styling": april_rates["styling_rate__avg"]},
+            {"month": "May", "styling": may_rates["styling_rate__avg"]},
+            {"month": "June", "styling": june_rates["styling_rate__avg"]},
+            {"month": "July", "styling": july_rates["styling_rate__avg"]},
+            {"month": "August", "styling": august_rates["styling_rate__avg"]},
+            {"month": "September", "styling": september_rates["styling_rate__avg"]},
+            {"month": "October", "styling": october_rates["styling_rate__avg"]},
+            {"month": "November", "styling": november_rates["styling_rate__avg"]},
+            {"month": "December", "styling": december_rates["styling_rate__avg"]},
+        ]
+        return Response(styling_rates)
+
+
+class GetMCRateForecast(views.APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        january_rates = Rating.objects.filter(event_date__month="01").aggregate(
+            Avg("mc_rate")
+        )
+        february_rates = Rating.objects.filter(event_date__month="02").aggregate(
+            Avg("mc_rate")
+        )
+        march_rates = Rating.objects.filter(event_date__month="03").aggregate(
+            Avg("mc_rate")
+        )
+        april_rates = Rating.objects.filter(event_date__month="04").aggregate(
+            Avg("mc_rate")
+        )
+        may_rates = Rating.objects.filter(event_date__month="05").aggregate(
+            Avg("mc_rate")
+        )
+        june_rates = Rating.objects.filter(event_date__month="06").aggregate(
+            Avg("mc_rate")
+        )
+        july_rates = Rating.objects.filter(event_date__month="07").aggregate(
+            Avg("mc_rate")
+        )
+        august_rates = Rating.objects.filter(event_date__month="08").aggregate(
+            Avg("mc_rate")
+        )
+        september_rates = Rating.objects.filter(event_date__month="09").aggregate(
+            Avg("mc_rate")
+        )
+        october_rates = Rating.objects.filter(event_date__month="10").aggregate(
+            Avg("mc_rate")
+        )
+        november_rates = Rating.objects.filter(event_date__month="11").aggregate(
+            Avg("mc_rate")
+        )
+        december_rates = Rating.objects.filter(event_date__month="12").aggregate(
+            Avg("mc_rate")
+        )
+        mc_rates = [
+            {"month": "January", "mc": january_rates["mc_rate__avg"]},
+            {"month": "February", "mc": february_rates["mc_rate__avg"]},
+            {"month": "March", "mc": march_rates["mc_rate__avg"]},
+            {"month": "April", "mc": april_rates["mc_rate__avg"]},
+            {"month": "May", "mc": may_rates["mc_rate__avg"]},
+            {"month": "June", "mc": june_rates["mc_rate__avg"]},
+            {"month": "July", "mc": july_rates["mc_rate__avg"]},
+            {"month": "August", "mc": august_rates["mc_rate__avg"]},
+            {"month": "September", "mc": september_rates["mc_rate__avg"]},
+            {"month": "October", "mc": october_rates["mc_rate__avg"]},
+            {"month": "November", "mc": november_rates["mc_rate__avg"]},
+            {"month": "December", "mc": december_rates["mc_rate__avg"]},
+        ]
+        return Response(mc_rates)
+
+
+class GetPresentationRateForecast(views.APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        january_rates = Rating.objects.filter(event_date__month="01").aggregate(
+            Avg("presentation_rate")
+        )
+        february_rates = Rating.objects.filter(event_date__month="02").aggregate(
+            Avg("presentation_rate")
+        )
+        march_rates = Rating.objects.filter(event_date__month="03").aggregate(
+            Avg("presentation_rate")
+        )
+        april_rates = Rating.objects.filter(event_date__month="04").aggregate(
+            Avg("presentation_rate")
+        )
+        may_rates = Rating.objects.filter(event_date__month="05").aggregate(
+            Avg("presentation_rate")
+        )
+        june_rates = Rating.objects.filter(event_date__month="06").aggregate(
+            Avg("presentation_rate")
+        )
+        july_rates = Rating.objects.filter(event_date__month="07").aggregate(
+            Avg("presentation_rate")
+        )
+        august_rates = Rating.objects.filter(event_date__month="08").aggregate(
+            Avg("presentation_rate")
+        )
+        september_rates = Rating.objects.filter(event_date__month="09").aggregate(
+            Avg("presentation_rate")
+        )
+        october_rates = Rating.objects.filter(event_date__month="10").aggregate(
+            Avg("presentation_rate")
+        )
+        november_rates = Rating.objects.filter(event_date__month="11").aggregate(
+            Avg("presentation_rate")
+        )
+        december_rates = Rating.objects.filter(event_date__month="12").aggregate(
+            Avg("presentation_rate")
+        )
+        presentation_rates = [
+            {
+                "month": "January",
+                "presentation": january_rates["presentation_rate__avg"],
+            },
+            {
+                "month": "February",
+                "presentation": february_rates["presentation_rate__avg"],
+            },
+            {"month": "March", "presentation": march_rates["presentation_rate__avg"]},
+            {"month": "April", "presentation": april_rates["presentation_rate__avg"]},
+            {"month": "May", "presentation": may_rates["presentation_rate__avg"]},
+            {"month": "June", "presentation": june_rates["presentation_rate__avg"]},
+            {"month": "July", "presentation": july_rates["presentation_rate__avg"]},
+            {"month": "August", "presentation": august_rates["presentation_rate__avg"]},
+            {
+                "month": "September",
+                "presentation": september_rates["presentation_rate__avg"],
+            },
+            {
+                "month": "October",
+                "presentation": october_rates["presentation_rate__avg"],
+            },
+            {
+                "month": "November",
+                "presentation": november_rates["presentation_rate__avg"],
+            },
+            {
+                "month": "December",
+                "presentation": december_rates["presentation_rate__avg"],
+            },
+        ]
+        return Response(presentation_rates)
+
+
+class GetCoutesyRateForecast(views.APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        january_rates = Rating.objects.filter(event_date__month="01").aggregate(
+            Avg("courtesy_rate")
+        )
+        february_rates = Rating.objects.filter(event_date__month="02").aggregate(
+            Avg("courtesy_rate")
+        )
+        march_rates = Rating.objects.filter(event_date__month="03").aggregate(
+            Avg("courtesy_rate")
+        )
+        april_rates = Rating.objects.filter(event_date__month="04").aggregate(
+            Avg("courtesy_rate")
+        )
+        may_rates = Rating.objects.filter(event_date__month="05").aggregate(
+            Avg("courtesy_rate")
+        )
+        june_rates = Rating.objects.filter(event_date__month="06").aggregate(
+            Avg("courtesy_rate")
+        )
+        july_rates = Rating.objects.filter(event_date__month="07").aggregate(
+            Avg("courtesy_rate")
+        )
+        august_rates = Rating.objects.filter(event_date__month="08").aggregate(
+            Avg("courtesy_rate")
+        )
+        september_rates = Rating.objects.filter(event_date__month="09").aggregate(
+            Avg("courtesy_rate")
+        )
+        october_rates = Rating.objects.filter(event_date__month="10").aggregate(
+            Avg("courtesy_rate")
+        )
+        november_rates = Rating.objects.filter(event_date__month="11").aggregate(
+            Avg("courtesy_rate")
+        )
+        december_rates = Rating.objects.filter(event_date__month="12").aggregate(
+            Avg("courtesy_rate")
+        )
+        courtesy_rates = [
+            {
+                "month": "January",
+                "courtesy": january_rates["courtesy_rate__avg"],
+            },
+            {
+                "month": "February",
+                "courtesy": february_rates["courtesy_rate__avg"],
+            },
+            {"month": "March", "courtesy": march_rates["courtesy_rate__avg"]},
+            {"month": "April", "courtesy": april_rates["courtesy_rate__avg"]},
+            {"month": "May", "courtesy": may_rates["courtesy_rate__avg"]},
+            {"month": "June", "courtesy": june_rates["courtesy_rate__avg"]},
+            {"month": "July", "courtesy": july_rates["courtesy_rate__avg"]},
+            {"month": "August", "courtesy": august_rates["courtesy_rate__avg"]},
+            {
+                "month": "September",
+                "courtesy": september_rates["courtesy_rate__avg"],
+            },
+            {
+                "month": "October",
+                "courtesy": october_rates["courtesy_rate__avg"],
+            },
+            {
+                "month": "November",
+                "courtesy": november_rates["courtesy_rate__avg"],
+            },
+            {
+                "month": "December",
+                "courtesy": december_rates["courtesy_rate__avg"],
+            },
+        ]
+        return Response(courtesy_rates)
 
 
 # GROUP ROOM VIEWS
