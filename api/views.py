@@ -1,11 +1,9 @@
-from django.db.models import query
 from django.shortcuts import get_object_or_404
 from rest_framework import generics
 from rest_framework import views
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
-from rest_framework.exceptions import AuthenticationFailed
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from api.serializers import (
     AccountSerializer,
     AffiliationSerializer,
@@ -38,6 +36,13 @@ from api.models import (
 )
 from rest_framework.parsers import MultiPartParser, FormParser
 from django.db.models import Avg
+from django.conf import settings
+from django.core.mail import EmailMessage, EmailMultiAlternatives
+from django.template.loader import render_to_string
+from django.shortcuts import render
+import base64
+from email.mime.image import MIMEImage
+import os
 
 # Create your views here.
 class CreateAccountView(generics.CreateAPIView):
@@ -278,6 +283,22 @@ class GetClientBookingView(generics.RetrieveAPIView):
         return Response(serializer.data)
 
 
+class UpdateBookingView(generics.UpdateAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = EventBookingSerializer
+    queryset = EventBookings.objects.all()
+
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.serializer_class(instance, data=request.data, partial=True)
+
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 class DestroyEventBookingView(generics.DestroyAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = EventBookingSerializer
@@ -300,6 +321,45 @@ class CreateInterviewView(generics.CreateAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = InterviewSerializer
     queryset = InterviewSchedule.objects.all()
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.serializer_class(
+            data=request.data, context={"request": request}
+        )
+
+        client_id = request.data["client"]
+        client = Client.objects.get(pk=client_id)
+
+        with open("media/Email Image.png", "rb") as img_file:
+            my_img = MIMEImage(img_file.read())
+            my_img.add_header("Content-ID", "<{name}>".format(name="email_img"))
+            my_img.add_header("Content-Disposition", "inline", filename="email_img")
+        context = {
+            "my_img": my_img,
+            "client_name": client.first_name + " " + client.last_name,
+            "date_schedule": request.data["date"],
+            "time_schedule": request.data["time"],
+            "location": request.data["location"],
+        }
+
+        subject = "Alas Creative Events Interview"
+        template = render_to_string("api/email_template.html", context)
+
+        email_from = settings.EMAIL_HOST_USER
+        recipient = ["schieniezel@gmail.com"]
+
+        my_email = EmailMultiAlternatives(subject, template, email_from, recipient)
+        my_email.mixed_subtype = "related"
+        my_email.attach_alternative(template, "text/html")
+        my_email.attach(my_img)
+
+        my_email.send(fail_silently=False)
+
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class GetInterviewView(generics.RetrieveAPIView):
@@ -368,6 +428,22 @@ class GetClientEventView(generics.RetrieveAPIView):
         instance = self.get_object()
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
+
+
+class UpdateEventView(generics.UpdateAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = EventSerializer
+    queryset = Event.objects.all()
+
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.serializer_class(instance, data=request.data, partial=True)
+
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class DestroyEventView(generics.DestroyAPIView):
@@ -935,3 +1011,18 @@ class AllPartnerGroups(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = PartnerGroupRoomSerializer
     queryset = PartnerGroupRoom.objects.all()
+
+
+def email_view(request):
+    img_dir = "media"
+    image = "Email Image.png"
+    file_path = os.path.join(img_dir, image)
+    with open(file_path, "rb") as img_file:
+        my_img = MIMEImage(img_file.read())
+        my_img.add_header("Content-ID", "<{name}>".format(name=image))
+        my_img.add_header("Content-Disposition", "inline", filename=image)
+    # with open("media/Email Image.png", "rb") as img_file:
+    #     encoded_img = base64.b64encode(img_file.read())
+    # decoded_img = encoded_img.decode("utf-8")
+    # print("The fvcking decoded base64 is: ", decoded_img)
+    return render(request, "api/email_template2.html", {"my_img": my_img})

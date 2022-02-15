@@ -97,19 +97,24 @@ class EventBookings(models.Model):
 
 class Event(models.Model):
     event_name = models.CharField(max_length=200)
+    venue_location = models.CharField(max_length=250, default="Tagum City")
     venue_name = models.CharField(max_length=250)
     venue_lat = models.DecimalField(max_digits=30, decimal_places=10, default=7.45)
     venue_long = models.DecimalField(max_digits=30, decimal_places=10, default=125.8)
-    event_date = models.DateField()
+    package_cost = models.IntegerField(default=0)
+    client_payment = models.IntegerField()
+    payment_status = models.CharField(max_length=20, default="Partially Paid")
+    date_schedule = models.DateField()
     time_schedule = models.CharField(max_length=30)
-    event_budget = models.IntegerField()
     client = models.ForeignKey(Client, on_delete=models.CASCADE)
+    created_at = models.DateField(auto_now_add=True, blank=True, null=True)
+    updated_at = models.DateField(auto_now=True, blank=True, null=True)
 
     def __str__(self):
         return self.event_name
 
     class Meta:
-        ordering = ["event_date"]
+        ordering = ["date_schedule"]
 
 
 class InterviewSchedule(models.Model):

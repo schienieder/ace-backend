@@ -166,20 +166,6 @@ class EventSerializer(serializers.ModelSerializer):
         fields = "__all__"
         extra_kwargs = {"id": {"read_only": True}}
 
-    def create(self, validated_data):
-        event = Event.objects.create(
-            event_name=validated_data["event_name"],
-            venue_name=validated_data["venue_name"],
-            venue_lat=validated_data["venue_lat"],
-            venue_long=validated_data["venue_long"],
-            event_date=validated_data["event_date"],
-            time_schedule=validated_data["time_schedule"],
-            event_budget=validated_data["event_budget"],
-            client=validated_data["client"],
-        )
-        event.save()
-        return event
-
 
 class InterviewSerializer(serializers.ModelSerializer):
     class Meta:

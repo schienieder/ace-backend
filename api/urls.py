@@ -15,6 +15,7 @@ from api.views import (
     CreateBookingView,
     GetBookingView,
     GetClientBookingView,
+    UpdateBookingView,
     DestroyEventBookingView,
     CreateInterviewView,
     GetInterviewView,
@@ -22,6 +23,7 @@ from api.views import (
     CreateEventView,
     GetEventView,
     GetClientEventView,
+    UpdateEventView,
     DestroyEventView,
     CreateAffiliationView,
     GetAffiliationView,
@@ -55,6 +57,7 @@ from api.views import (
     AllPartnerGroups,
     AdminGetPartnerView,
     AdminGetClientView,
+    email_view,
 )
 
 urlpatterns = [
@@ -100,6 +103,7 @@ urlpatterns = [
     path(
         "client_booking/<int:pk>", GetClientBookingView.as_view(), name="clientBooking"
     ),
+    path("booking/update/<int:pk>", UpdateBookingView.as_view(), name="updateBooking"),
     path(
         "client_booking/destroy/<int:pk>",
         DestroyEventBookingView.as_view(),
@@ -117,6 +121,7 @@ urlpatterns = [
     path("add_event/", CreateEventView.as_view(), name="createEvents"),
     path("event/<int:pk>", GetEventView.as_view(), name="eventView"),
     path("client_event/<int:pk>", GetClientEventView.as_view(), name="clientEvent"),
+    path("update_event/<int:pk>", UpdateEventView.as_view(), name="updateEvent"),
     path("event/destroy/<int:pk>", DestroyEventView.as_view(), name="eventDestroy"),
     # AFFILIATIONS VIEW PATHS
     path("add_affiliation/", CreateAffiliationView.as_view(), name="createAffiliation"),
@@ -213,4 +218,5 @@ urlpatterns = [
     # ADMIN VIEW PATHS
     path("admin_partner/<int:pk>", AdminGetPartnerView.as_view(), name="adminPartner"),
     path("admin_client/<int:pk>", AdminGetClientView.as_view(), name="adminClient"),
+    path("email_view", email_view, name="emailTemplate"),
 ]
