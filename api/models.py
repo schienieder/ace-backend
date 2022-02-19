@@ -12,6 +12,14 @@ def upload_to(instance, filename):
     )
 
 
+def upload_to_files(instance, filename):
+    now = timezone.now()
+    milliseconds = now.microsecond
+    return "files/{milliseconds}{filename}".format(
+        filename=filename, milliseconds=milliseconds
+    )
+
+
 # Create your models here.
 class Account(AbstractUser):
     username = models.CharField(max_length=150, unique=True)
@@ -58,6 +66,7 @@ class Client(models.Model):
 
 
 class BusinessPartner(models.Model):
+    permit_profile = models.FileField(null=True, blank=True, upload_to=upload_to_files)
     first_name = models.CharField(max_length=150)
     last_name = models.CharField(max_length=150)
     mobile_number = models.CharField(max_length=150, unique=True)

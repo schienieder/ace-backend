@@ -336,7 +336,7 @@ class CreateInterviewView(generics.CreateAPIView):
             my_img.add_header("Content-Disposition", "inline", filename="email_img")
         context = {
             "my_img": my_img,
-            "client_name": client.first_name + " " + client.last_name,
+            "client_name": client.first_name,
             "date_schedule": request.data["date"],
             "time_schedule": request.data["time"],
             "location": request.data["location"],
@@ -381,6 +381,51 @@ class GetInterviewView(generics.RetrieveAPIView):
         return Response(serializer.data)
 
 
+class UpdateInterviewSchedule(generics.UpdateAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = InterviewSerializer
+    queryset = InterviewSchedule.objects.all()
+
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.serializer_class(instance, data=request.data, partial=True)
+
+        interview = InterviewSchedule.objects.get(pk=self.kwargs["pk"])
+        client_id = interview.client.id
+        client = Client.objects.get(pk=client_id)
+
+        with open("media/Email Image.png", "rb") as img_file:
+            my_img = MIMEImage(img_file.read())
+            my_img.add_header("Content-ID", "<{name}>".format(name="email_img"))
+            my_img.add_header("Content-Disposition", "inline", filename="email_img")
+        context = {
+            "my_img": my_img,
+            "client_name": client.first_name,
+            "date_schedule": request.data["date"],
+            "time_schedule": request.data["time"],
+            "location": request.data["location"],
+        }
+
+        subject = "Alas Creative Events Interview"
+        template = render_to_string("api/update_email_template.html", context)
+
+        email_from = settings.EMAIL_HOST_USER
+        recipient = ["schieniezel@gmail.com"]
+
+        my_email = EmailMultiAlternatives(subject, template, email_from, recipient)
+        my_email.mixed_subtype = "related"
+        my_email.attach_alternative(template, "text/html")
+        my_email.attach(my_img)
+
+        my_email.send(fail_silently=False)
+
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 class DestroyInterviewView(generics.DestroyAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = InterviewSerializer
@@ -408,6 +453,12 @@ class GetEventView(generics.RetrieveAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = EventSerializer
     queryset = Event.objects.all()
+
+
+class DashboardEvents(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = EventSerializer
+    queryset = Event.objects.all()[:5]
 
 
 class GetClientEventView(generics.RetrieveAPIView):
@@ -465,6 +516,12 @@ class GetAffiliationView(generics.RetrieveAPIView):
     queryset = AffiliationRequest.objects.all()
 
 
+class DashboardAffiliations(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = AffiliationSerializer
+    queryset = AffiliationRequest.objects.all()[:5]
+
+
 class UpdateRequestView(generics.UpdateAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = AffiliationSerializer
@@ -479,6 +536,12 @@ class UpdateRequestView(generics.UpdateAPIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class DestroyRequestView(generics.DestroyAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = AffiliationSerializer
+    queryset = AffiliationRequest.objects.all()
 
 
 # RATING VIEWS

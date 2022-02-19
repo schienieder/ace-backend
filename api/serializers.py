@@ -117,6 +117,7 @@ class BusinessPartnerSerializer(serializers.ModelSerializer):
         model = BusinessPartner
         fields = [
             "id",
+            "permit_profile",
             "first_name",
             "last_name",
             "mobile_number",

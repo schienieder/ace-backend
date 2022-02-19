@@ -19,15 +19,19 @@ from api.views import (
     DestroyEventBookingView,
     CreateInterviewView,
     GetInterviewView,
+    UpdateInterviewSchedule,
     DestroyInterviewView,
     CreateEventView,
     GetEventView,
+    DashboardEvents,
     GetClientEventView,
     UpdateEventView,
     DestroyEventView,
     CreateAffiliationView,
     GetAffiliationView,
+    DashboardAffiliations,
     UpdateRequestView,
+    DestroyRequestView,
     CreateRatingView,
     GetVenueRateForecast,
     GetCateringRateForecast,
@@ -113,6 +117,11 @@ urlpatterns = [
     path("add_interview/", CreateInterviewView.as_view(), name="createInterview"),
     path("interview/<int:pk>", GetInterviewView.as_view(), name="interviewView"),
     path(
+        "interview/update/<int:pk>",
+        UpdateInterviewSchedule.as_view(),
+        name="updateInterview",
+    ),
+    path(
         "interview/destroy/<int:pk>",
         DestroyInterviewView.as_view(),
         name="interviewDestroy",
@@ -120,13 +129,22 @@ urlpatterns = [
     # EVENT VIEW PATHS
     path("add_event/", CreateEventView.as_view(), name="createEvents"),
     path("event/<int:pk>", GetEventView.as_view(), name="eventView"),
+    path("dashboard_events/", DashboardEvents.as_view(), name="dashboardEvents"),
     path("client_event/<int:pk>", GetClientEventView.as_view(), name="clientEvent"),
     path("update_event/<int:pk>", UpdateEventView.as_view(), name="updateEvent"),
     path("event/destroy/<int:pk>", DestroyEventView.as_view(), name="eventDestroy"),
     # AFFILIATIONS VIEW PATHS
     path("add_affiliation/", CreateAffiliationView.as_view(), name="createAffiliation"),
     path("affiliation/<int:pk>", GetAffiliationView.as_view(), name="affiliationView"),
+    path(
+        "dashboard_affiliations/",
+        DashboardAffiliations.as_view(),
+        name="dashboardAffiliations",
+    ),
     path("request_update/<int:pk>", UpdateRequestView.as_view(), name="requestUpdate"),
+    path(
+        "request/destroy/<int:pk>", DestroyRequestView.as_view(), name="destroyRequest"
+    ),
     # RATING VIEW PATHS
     path("add_rating/", CreateRatingView.as_view(), name="addRating"),
     path("venue_forecast/", GetVenueRateForecast.as_view(), name="venueForecast"),
