@@ -9,10 +9,9 @@ from api.models import (
     InterviewSchedule,
     AffiliationRequest,
     Rating,
-    ClientRoom,
-    PartnerRoom,
-    GroupRoom,
-    ClientGroupRoom,
+    ChatRoom,
+    Chat,
+    RoomMember,
 )
 
 # Register your models here.
@@ -25,7 +24,6 @@ admin.site.register(Event)
 admin.site.register(InterviewSchedule)
 admin.site.register(AffiliationRequest)
 admin.site.register(Rating)
-admin.site.register(ClientRoom)
-admin.site.register(PartnerRoom)
-admin.site.register(GroupRoom)
-admin.site.register(ClientGroupRoom)
+admin.site.register(ChatRoom)
+admin.site.register(Chat)
+admin.site.register(RoomMember)

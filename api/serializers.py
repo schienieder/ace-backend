@@ -3,17 +3,15 @@ from api.models import (
     Account,
     Admin,
     AffiliationRequest,
+    Chat,
     Client,
     BusinessPartner,
     EventBookings,
     Event,
     InterviewSchedule,
     Rating,
-    ClientRoom,
-    PartnerRoom,
-    GroupRoom,
-    ClientGroupRoom,
-    PartnerGroupRoom,
+    ChatRoom,
+    RoomMember,
 )
 
 
@@ -50,10 +48,22 @@ class AccountSerializer(serializers.ModelSerializer):
                 account=account,
             )
             client.save()
-            client_room = ClientRoom.objects.create(
-                room_name=validated_data["username"], client=client
+            # CREATE ROOM FOR CLIENT
+            client_room = ChatRoom.objects.create(
+                room_name=validated_data["username"],
+                room_key=validated_data["username"],
             )
             client_room.save()
+            # ADD CLIENT AS ROOM MEMBER
+            room_member_client = RoomMember.objects.create(
+                room=client_room, member=validated_data["username"]
+            )
+            room_member_client.save()
+            # CREATE A CLIENT ROOM AFTER A CLIENT USERS REGISTERS
+            # client_room = ClientRoom.objects.create(
+            #     room_name=validated_data["username"], client=client
+            # )
+            # client_room.save()
         else:
             partner = BusinessPartner.objects.create(
                 first_name=request.data["first_name"],
@@ -63,10 +73,22 @@ class AccountSerializer(serializers.ModelSerializer):
                 account=account,
             )
             partner.save()
-            partner_room = PartnerRoom.objects.create(
-                room_name=validated_data["username"], partner=partner
+            # CREATE A ROOM FOR PARTNER
+            partner_room = ChatRoom.objects.create(
+                room_name=validated_data["username"],
+                room_key=validated_data["username"],
             )
             partner_room.save()
+            # ADD PARTNER AS ROOM MEMBER
+            room_member_partner = RoomMember.objects.create(
+                room=partner_room, member=validated_data["username"]
+            )
+            room_member_partner.save()
+            # CREATE A PARTNER ROOM AFTER A CLIENT USERS REGISTERS
+            # partner_room = PartnerRoom.objects.create(
+            #     room_name=validated_data["username"], partner=partner
+            # )
+            # partner_room.save()
         account.save()
         print(request.data)
         return account
@@ -161,6 +183,12 @@ class EventBookingSerializer(serializers.ModelSerializer):
         extra_kwargs = {"id": {"read_only": True}}
 
 
+class SalesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EventBookings
+        fields = ["event_month", "monthly_sales"]
+
+
 class EventSerializer(serializers.ModelSerializer):
     class Meta:
         model = Event
@@ -200,36 +228,22 @@ class RatingSerializer(serializers.ModelSerializer):
         extra_kwargs = {"id": {"read_only": True}}
 
 
-class ClientRoomSerializer(serializers.ModelSerializer):
+class ChatRoomSerializer(serializers.ModelSerializer):
     class Meta:
-        model = ClientRoom
+        model = ChatRoom
         fields = "__all__"
         extra_kwargs = {"id": {"read_only": True}}
 
 
-class PartnerRoomSerializer(serializers.ModelSerializer):
+class ChatMessagesSerializer(serializers.ModelSerializer):
     class Meta:
-        model = PartnerRoom
+        model = Chat
         fields = "__all__"
         extra_kwargs = {"id": {"read_only": True}}
 
 
-class GroupRoomSerializer(serializers.ModelSerializer):
+class RoomMemberSerializer(serializers.ModelSerializer):
     class Meta:
-        model = GroupRoom
-        fields = "__all__"
-        extra_kwargs = {"id": {"read_only": True}}
-
-
-class ClientGroupRoomSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ClientGroupRoom
-        fields = "__all__"
-        extra_kwargs = {"id": {"read_only": True}}
-
-
-class PartnerGroupRoomSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = PartnerGroupRoom
+        model = RoomMember
         fields = "__all__"
         extra_kwargs = {"id": {"read_only": True}}

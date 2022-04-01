@@ -172,23 +172,13 @@ class Rating(models.Model):
         ordering = ["pk"]
 
 
-class ClientRoom(models.Model):
-    room_name = models.CharField(max_length=50)
-    client = models.ForeignKey(Client, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return self.room_name
+# [1] FIRST IS MAKEMIGRATIONS & MIGRATE THE FF MODELS
+# [2.1] WHENEVER A PARTNER OR CLIENT REGISTERS, CREATE A CHATROOM
+# [2.2] ASSIGN CLIENT OR PARTNER USERNAME AS ROOM_KEY
+# [3] DEFINE A ROOM_KEY WHEN CREATING A GROUP CHAT ROOM
 
 
-class PartnerRoom(models.Model):
-    room_name = models.CharField(max_length=50)
-    partner = models.ForeignKey(BusinessPartner, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return self.room_name
-
-
-class GroupRoom(models.Model):
+class ChatRoom(models.Model):
     room_name = models.CharField(max_length=50)
     room_key = models.CharField(max_length=50)
 
@@ -196,17 +186,18 @@ class GroupRoom(models.Model):
         return self.room_name
 
 
-class ClientGroupRoom(models.Model):
-    client = models.ForeignKey(Client, on_delete=models.CASCADE)
-    group_room = models.ForeignKey(GroupRoom, on_delete=models.CASCADE)
+class RoomMember(models.Model):
+    room = models.ForeignKey(ChatRoom, on_delete=models.CASCADE)
+    member = models.CharField(max_length=150)  # THIS IS THE USERNAME OF THE USER
 
     def __str__(self):
-        return self.group_room.room_name
+        return self.room.room_name
 
 
-class PartnerGroupRoom(models.Model):
-    partner = models.ForeignKey(BusinessPartner, on_delete=models.CASCADE)
-    group_room = models.ForeignKey(GroupRoom, on_delete=models.CASCADE)
+class Chat(models.Model):
+    content = models.CharField(max_length=1000)
+    room = models.ForeignKey(ChatRoom, on_delete=models.CASCADE)
+    user = models.CharField(max_length=150)  # THIS IS THE USERNAME OF THE USER
 
     def __str__(self):
-        return self.group_room.room_name
+        return self.user

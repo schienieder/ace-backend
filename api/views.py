@@ -13,11 +13,8 @@ from api.serializers import (
     EventSerializer,
     InterviewSerializer,
     RatingSerializer,
-    ClientRoomSerializer,
-    PartnerRoomSerializer,
-    GroupRoomSerializer,
-    ClientGroupRoomSerializer,
-    PartnerGroupRoomSerializer,
+    ChatRoomSerializer,
+    ChatMessagesSerializer,
 )
 from api.models import (
     Account,
@@ -28,21 +25,20 @@ from api.models import (
     InterviewSchedule,
     AffiliationRequest,
     Rating,
-    ClientRoom,
-    PartnerRoom,
-    GroupRoom,
-    ClientGroupRoom,
-    PartnerGroupRoom,
+    ChatRoom,
+    Chat,
 )
 from rest_framework.parsers import MultiPartParser, FormParser
-from django.db.models import Avg
+from django.db.models import Avg, Sum, Count
+from django.db.models.functions import TruncMonth
+from datetime import date
 from django.conf import settings
-from django.core.mail import EmailMessage, EmailMultiAlternatives
+from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 from django.shortcuts import render
-import base64
 from email.mime.image import MIMEImage
 import os
+from django.core import serializers
 
 # Create your views here.
 class CreateAccountView(generics.CreateAPIView):
@@ -65,6 +61,22 @@ class GetAccountView(generics.RetrieveAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = AccountSerializer
     queryset = Account.objects.all()
+
+
+class UpdateAccountView(generics.UpdateAPIView):
+    permission_classes = [AllowAny]
+    serializer_class = AccountSerializer
+    queryset = Account.objects.all()
+
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.serializer_class(instance, data=request.data, partial=True)
+
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 # CLIENT VIEWS
@@ -461,6 +473,12 @@ class DashboardEvents(generics.ListAPIView):
     queryset = Event.objects.all()[:5]
 
 
+# class DashboardMonthlyEvents(generics.ListAPIView):
+#     permission_classes = [IsAuthenticated]
+#     serializer_class = EventSerializer
+#     queryset = Event.objects.annotate(monthly_events=Count())
+
+
 class GetClientEventView(generics.RetrieveAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = EventSerializer
@@ -479,6 +497,14 @@ class GetClientEventView(generics.RetrieveAPIView):
         instance = self.get_object()
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
+
+
+class ClientPayments(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = EventSerializer
+    queryset = Event.objects.filter(
+        date_schedule__range=[date.today(), date(date.today().year, 12, 30)]
+    )
 
 
 class UpdateEventView(generics.UpdateAPIView):
@@ -502,6 +528,59 @@ class DestroyEventView(generics.DestroyAPIView):
     serializer_class = EventSerializer
     queryset = Event.objects.all()
 
+
+class GetIncuredEvents(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = EventSerializer
+    queryset = Event.objects.filter(
+        date_schedule__range=[date(date.today().year, 1, 1), date.today()]
+    )
+
+
+class GetSalesPerMonth(views.APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        monthly_sales = Event.objects.raw(
+            """SELECT EXTRACT(MONTH FROM date_schedule) as extracted_month,
+                SUM(package_cost) as monthly_sales FROM api_event
+                GROUP BY extracted_month ORDER BY extracted_month ASC"""
+        )
+        data = serializers.serialize("json", monthly_sales)
+        print(data)
+        return Response(data)
+
+
+class GetTotalSales(views.APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        total_sales = Event.objects.filter(
+            date_schedule__range=[date(date.today().year, 1, 1), date.today()]
+        ).aggregate(total_sales=Sum("package_cost"))
+        return Response(total_sales)
+
+
+# class VenueSatisfactionForecast(views.APIView):
+#     # INCLUDE ONLY THE COLUMNS THAT WE ARE INTERESTED IN
+#     ratings = Rating.objects.exclude('event_name', 'catering_rate', 'styling_rate', 'mc_rate', 'presentation_rate', 'courtesy_rate')
+#     # CONVERT THE QUERYSET INTO PANDAS DATAFRAME
+#     ratings_df = pd.DataFrame(ratings)
+#     # GROUP THE COLUMNS AND SUM THEM
+#     ratings_df = ratings_df.groupby(['event_date', 'venue_rate'], as_index=False).sum()
+#     # RENAME THE COLUMNS FOR X & Y TO ENABLE PROPHET TO RECOGNIZE THEM
+#     ratings_df = ratings_df.rename(columns={'event_date' : 'ds', 'venue_rate' : 'y'})
+#     # SINCE WE HAVE 2 YEARS WORTH DATA, MAKE A TRAINING & TESTING MODELS FOR EACH YEAR
+#     training_model = ratings_df = [ratings_df['ds']<'2021-01-01']
+#     testing_model = ratings_df = [ratings_df['ds']>='2021-01-01']
+#     # INSTANTIATE PROPHET
+#     m = Prophet()
+#     # FIT THE TRAINING MODEL
+#     m.fit(training_model)
+#     # MAKE A FUTURISTIC DATAFRAME FOR THE NEXT 365 DAYS
+#     future_ratings = m.make_future_dataframe(periods=365, freq='d')
+#     # FINAL STEP IS TO PREDICT
+#     venue_forecast = m.predict(future_ratings)
 
 # AFFILIATION VIEWS
 class CreateAffiliationView(generics.CreateAPIView):
@@ -929,30 +1008,25 @@ class GetCoutesyRateForecast(views.APIView):
         return Response(courtesy_rates)
 
 
-# GROUP ROOM VIEWS
-class CreateGroupRoom(generics.CreateAPIView):
+# CHAT ROOM VIEWS
+class GetOwnRoom(generics.RetrieveAPIView):
     permission_classes = [IsAuthenticated]
-    serializer_class = GroupRoomSerializer
-    queryset = GroupRoom.objects.all()
+    serializer_class = ChatRoomSerializer
+    queryset = ChatRoom.objects.all()
+    lookup_field = "room_name"
 
+    def get_queryset(self):
+        return self.queryset
 
-class GetGroupRoom(generics.RetrieveAPIView):
-    permission_classes = [IsAuthenticated]
-    serializer_class = GroupRoomSerializer
-    queryset = GroupRoom.objects.all()
-    lookup_field = "room_key"
+    def get_object(self):
+        queryset = self.get_queryset()
+        my_obj = get_object_or_404(queryset, room_name=self.kwargs["room_name"])
+        return my_obj
 
-
-class CreateClientGroupRoom(generics.CreateAPIView):
-    permission_classes = [IsAuthenticated]
-    serializer_class = ClientGroupRoomSerializer
-    queryset = ClientGroupRoom.objects.all()
-
-
-class CreatePartnerGroupRoom(generics.CreateAPIView):
-    permission_classes = [IsAuthenticated]
-    serializer_class = PartnerGroupRoomSerializer
-    queryset = PartnerGroupRoom.objects.all()
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
 
 
 # LIST VIEWS
@@ -977,7 +1051,9 @@ class AllClientBookingsView(generics.ListAPIView):
 class AllEventsView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = EventSerializer
-    queryset = Event.objects.all()
+    queryset = Event.objects.filter(
+        date_schedule__range=[date.today(), date(date.today().year, 12, 31)]
+    )
 
 
 class AllInterviewsView(generics.ListAPIView):
@@ -1046,34 +1122,20 @@ class AllCompletedTaskView(generics.ListAPIView):
         )
 
 
-class AllClientRoomsView(generics.ListAPIView):
+class AllChatRooms(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
-    serializer_class = ClientRoomSerializer
-    queryset = ClientRoom.objects.all()
+    serializer_class = ChatRoomSerializer
+    queryset = ChatRoom.objects.all()
 
 
-class AllPartnerRoomsView(generics.ListAPIView):
+class AllRoomChatMessages(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
-    serializer_class = PartnerRoomSerializer
-    queryset = PartnerRoom.objects.all()
+    serializer_class = ChatMessagesSerializer
+    queryset = Chat.objects.all()
 
-
-class AllGroupRooms(generics.ListAPIView):
-    permission_classes = [IsAuthenticated]
-    serializer_class = GroupRoomSerializer
-    queryset = GroupRoom.objects.all()
-
-
-class AllClientGroups(generics.ListAPIView):
-    permission_classes = [IsAuthenticated]
-    serializer_class = ClientGroupRoomSerializer
-    queryset = ClientGroupRoom.objects.all()
-
-
-class AllPartnerGroups(generics.ListAPIView):
-    permission_classes = [IsAuthenticated]
-    serializer_class = PartnerGroupRoomSerializer
-    queryset = PartnerGroupRoom.objects.all()
+    def get_queryset(self):
+        room_id = self.kwargs["pk"]
+        return Chat.objects.filter(room__id=room_id)
 
 
 def email_view(request):

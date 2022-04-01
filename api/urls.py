@@ -6,6 +6,7 @@ from rest_framework_simplejwt.views import (
 from api.views import (
     CreateAccountView,
     GetAccountView,
+    UpdateAccountView,
     GetClientProfileView,
     UpdateClientProfileView,
     DestroyClientProfileView,
@@ -25,8 +26,12 @@ from api.views import (
     GetEventView,
     DashboardEvents,
     GetClientEventView,
+    ClientPayments,
     UpdateEventView,
     DestroyEventView,
+    GetIncuredEvents,
+    GetTotalSales,
+    GetSalesPerMonth,
     CreateAffiliationView,
     GetAffiliationView,
     DashboardAffiliations,
@@ -39,10 +44,7 @@ from api.views import (
     GetMCRateForecast,
     GetPresentationRateForecast,
     GetCoutesyRateForecast,
-    CreateGroupRoom,
-    GetGroupRoom,
-    CreateClientGroupRoom,
-    CreatePartnerGroupRoom,
+    GetOwnRoom,
     AllBusinessPartnersView,
     AllClientsView,
     AllClientBookingsView,
@@ -54,14 +56,11 @@ from api.views import (
     AllEventTasksView,
     AllTasksView,
     AllCompletedTaskView,
-    AllClientRoomsView,
-    AllPartnerRoomsView,
-    AllGroupRooms,
-    AllClientGroups,
-    AllPartnerGroups,
     AdminGetPartnerView,
     AdminGetClientView,
-    email_view,
+    AllChatRooms,
+    AllRoomChatMessages,
+    # email_view,
 )
 
 urlpatterns = [
@@ -69,6 +68,7 @@ urlpatterns = [
     path("api/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("account/<int:pk>", GetAccountView.as_view(), name="accountView"),
+    path("account/update", UpdateAccountView.as_view(), name="updateAccount"),
     # CLIENT VIEW PATHS
     path(
         "client_profile/<int:pk>",
@@ -131,8 +131,12 @@ urlpatterns = [
     path("event/<int:pk>", GetEventView.as_view(), name="eventView"),
     path("dashboard_events/", DashboardEvents.as_view(), name="dashboardEvents"),
     path("client_event/<int:pk>", GetClientEventView.as_view(), name="clientEvent"),
+    path("client_payments/", ClientPayments.as_view(), name="clientPayments"),
     path("update_event/<int:pk>", UpdateEventView.as_view(), name="updateEvent"),
     path("event/destroy/<int:pk>", DestroyEventView.as_view(), name="eventDestroy"),
+    path("incured_events/", GetIncuredEvents.as_view(), name="incuredEvents"),
+    path("total_sales/", GetTotalSales.as_view(), name="totalSales"),
+    path("monthly_sales/", GetSalesPerMonth.as_view(), name="monthlySales"),
     # AFFILIATIONS VIEW PATHS
     path("add_affiliation/", CreateAffiliationView.as_view(), name="createAffiliation"),
     path("affiliation/<int:pk>", GetAffiliationView.as_view(), name="affiliationView"),
@@ -163,17 +167,8 @@ urlpatterns = [
         GetCoutesyRateForecast.as_view(),
         name="coutesyForecast",
     ),
-    # GROUP ROOM PATHS
-    path("add_group_room/", CreateGroupRoom.as_view(), name="addGroupRoom"),
-    path("group_room/<str:room_key>", GetGroupRoom.as_view(), name="groupRoom"),
-    path(
-        "add_client_group/", CreateClientGroupRoom.as_view(), name="addClientGroupRoom"
-    ),
-    path(
-        "add_partner_group/",
-        CreatePartnerGroupRoom.as_view(),
-        name="addPartnerGroupRoom",
-    ),
+    # CHATROOM VIEWS
+    path("ownroom/<str:room_name>", GetOwnRoom.as_view(), name="ownRoom"),
     # LIST VIEW PATHS
     path(
         "partners_list/", AllBusinessPartnersView.as_view(), name="allBusinessPartners"
@@ -208,33 +203,10 @@ urlpatterns = [
         AllCompletedTaskView.as_view(),
         name="allCompletedTasks",
     ),
-    path(
-        "client_rooms/",
-        AllClientRoomsView.as_view(),
-        name="allClientRooms",
-    ),
-    path(
-        "partner_rooms/",
-        AllPartnerRoomsView.as_view(),
-        name="allPartnerRooms",
-    ),
-    path(
-        "all_group_rooms/",
-        AllGroupRooms.as_view(),
-        name="allGroupRooms",
-    ),
-    path(
-        "all_client_groups/",
-        AllClientGroups.as_view(),
-        name="allClientGroups",
-    ),
-    path(
-        "all_partner_groups/",
-        AllPartnerGroups.as_view(),
-        name="allPartnerGroups",
-    ),
+    path("chatroom_list/", AllChatRooms.as_view(), name="allChatRooms"),
+    path("room_chats/<int:pk>", AllRoomChatMessages.as_view(), name="allRoomChats"),
     # ADMIN VIEW PATHS
     path("admin_partner/<int:pk>", AdminGetPartnerView.as_view(), name="adminPartner"),
     path("admin_client/<int:pk>", AdminGetClientView.as_view(), name="adminClient"),
-    path("email_view", email_view, name="emailTemplate"),
+    # path("email_view", email_view, name="emailTemplate"),
 ]
