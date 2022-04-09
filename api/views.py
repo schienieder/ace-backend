@@ -15,6 +15,7 @@ from api.serializers import (
     RatingSerializer,
     ChatRoomSerializer,
     ChatMessagesSerializer,
+    RoomMemberSerializer,
 )
 from api.models import (
     Account,
@@ -27,6 +28,7 @@ from api.models import (
     Rating,
     ChatRoom,
     Chat,
+    RoomMember,
 )
 from rest_framework.parsers import MultiPartParser, FormParser
 from django.db.models import Avg, Sum, Count
@@ -61,6 +63,30 @@ class GetAccountView(generics.RetrieveAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = AccountSerializer
     queryset = Account.objects.all()
+
+
+class GetAccountViaEmail(views.APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user_account = Account.objects.get(username=request.user.username)
+        print("Account: ", user_account)
+        if user_account.role == "client":
+            print("This is a client account")
+        else:
+            print("This is a partner account")
+
+
+class GetAccountViaMobile(views.APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user_account = Account.objects.get(username=request.user.username)
+        print("Account: ", user_account)
+        if user_account.role == "client":
+            print("This is a client account")
+        else:
+            print("This is a partner account")
 
 
 class UpdateAccountView(generics.UpdateAPIView):
@@ -1009,24 +1035,13 @@ class GetCoutesyRateForecast(views.APIView):
 
 
 # CHAT ROOM VIEWS
-class GetOwnRoom(generics.RetrieveAPIView):
+class GetMemberRooms(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
-    serializer_class = ChatRoomSerializer
-    queryset = ChatRoom.objects.all()
-    lookup_field = "room_name"
+    serializer_class = RoomMemberSerializer
+    queryset = RoomMember.objects.all()
 
     def get_queryset(self):
-        return self.queryset
-
-    def get_object(self):
-        queryset = self.get_queryset()
-        my_obj = get_object_or_404(queryset, room_name=self.kwargs["room_name"])
-        return my_obj
-
-    def retrieve(self, request, *args, **kwargs):
-        instance = self.get_object()
-        serializer = self.get_serializer(instance)
-        return Response(serializer.data)
+        return RoomMember.objects.filter(member=self.request.user.username)
 
 
 # LIST VIEWS

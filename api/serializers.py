@@ -50,7 +50,7 @@ class AccountSerializer(serializers.ModelSerializer):
             client.save()
             # CREATE ROOM FOR CLIENT
             client_room = ChatRoom.objects.create(
-                room_name=validated_data["username"],
+                room_name=f"{client.first_name} {client.last_name}",
                 room_key=validated_data["username"],
             )
             client_room.save()
@@ -75,7 +75,7 @@ class AccountSerializer(serializers.ModelSerializer):
             partner.save()
             # CREATE A ROOM FOR PARTNER
             partner_room = ChatRoom.objects.create(
-                room_name=validated_data["username"],
+                room_name=f"{partner.first_name} {partner.last_name}",
                 room_key=validated_data["username"],
             )
             partner_room.save()

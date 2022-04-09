@@ -197,7 +197,8 @@ class RoomMember(models.Model):
 class Chat(models.Model):
     content = models.CharField(max_length=1000)
     room = models.ForeignKey(ChatRoom, on_delete=models.CASCADE)
-    user = models.CharField(max_length=150)  # THIS IS THE USERNAME OF THE USER
+    sender_name = models.CharField(max_length=100, blank=True)
+    username = models.CharField(max_length=50, blank=True)
 
     def __str__(self):
-        return self.user
+        return self.sender_name

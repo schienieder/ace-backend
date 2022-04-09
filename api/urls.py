@@ -44,7 +44,7 @@ from api.views import (
     GetMCRateForecast,
     GetPresentationRateForecast,
     GetCoutesyRateForecast,
-    GetOwnRoom,
+    GetMemberRooms,
     AllBusinessPartnersView,
     AllClientsView,
     AllClientBookingsView,
@@ -168,7 +168,7 @@ urlpatterns = [
         name="coutesyForecast",
     ),
     # CHATROOM VIEWS
-    path("ownroom/<str:room_name>", GetOwnRoom.as_view(), name="ownRoom"),
+    path("member_rooms/", GetMemberRooms.as_view(), name="memberRooms"),
     # LIST VIEW PATHS
     path(
         "partners_list/", AllBusinessPartnersView.as_view(), name="allBusinessPartners"
