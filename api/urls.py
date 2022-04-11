@@ -6,6 +6,11 @@ from rest_framework_simplejwt.views import (
 from api.views import (
     CreateAccountView,
     GetAccountView,
+    GetAccountUsernameView,
+    GetClientViaMobile,
+    GetClientViaEmail,
+    GetPartnerViaMobile,
+    GetPartnerViaEmail,
     UpdateAccountView,
     GetClientProfileView,
     UpdateClientProfileView,
@@ -68,6 +73,31 @@ urlpatterns = [
     path("api/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("account/<int:pk>", GetAccountView.as_view(), name="accountView"),
+    path(
+        "check_username/<str:username>",
+        GetAccountUsernameView.as_view(),
+        name="checkUsername",
+    ),
+    path(
+        "client_mobile/<str:mobile_number>",
+        GetClientViaMobile.as_view(),
+        name="checkClientMobile",
+    ),
+    path(
+        "client_email/<str:email>",
+        GetClientViaEmail.as_view(),
+        name="checkClientEmail",
+    ),
+    path(
+        "partner_mobile/<str:mobile_number>",
+        GetPartnerViaMobile.as_view(),
+        name="checkPartnerMobile",
+    ),
+    path(
+        "partner_email/<str:email>",
+        GetPartnerViaEmail.as_view(),
+        name="checkPartnerEmail",
+    ),
     path("account/update", UpdateAccountView.as_view(), name="updateAccount"),
     # CLIENT VIEW PATHS
     path(

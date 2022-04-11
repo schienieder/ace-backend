@@ -247,3 +247,24 @@ class RoomMemberSerializer(serializers.ModelSerializer):
         model = RoomMember
         fields = "__all__"
         extra_kwargs = {"id": {"read_only": True}}
+
+
+class UsernameSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Account
+        fields = ["id", "username"]
+        extra_kwargs = {"id": {"read_only": True}}
+
+
+class ClientEmailMobileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Client
+        fields = ["id", "email", "mobile_number"]
+        extra_kwargs = {"id": {"read_only": True}}
+
+
+class PartnerEmailMobileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BusinessPartner
+        fields = ["id", "email", "mobile_number"]
+        extra_kwargs = {"id": {"read_only": True}}

@@ -16,6 +16,9 @@ from api.serializers import (
     ChatRoomSerializer,
     ChatMessagesSerializer,
     RoomMemberSerializer,
+    UsernameSerializer,
+    ClientEmailMobileSerializer,
+    PartnerEmailMobileSerializer,
 )
 from api.models import (
     Account,
@@ -65,28 +68,39 @@ class GetAccountView(generics.RetrieveAPIView):
     queryset = Account.objects.all()
 
 
-class GetAccountViaEmail(views.APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        user_account = Account.objects.get(username=request.user.username)
-        print("Account: ", user_account)
-        if user_account.role == "client":
-            print("This is a client account")
-        else:
-            print("This is a partner account")
+class GetAccountUsernameView(generics.RetrieveAPIView):
+    permission_classes = [AllowAny]
+    serializer_class = UsernameSerializer
+    queryset = Account.objects.all()
+    lookup_field = "username"
 
 
-class GetAccountViaMobile(views.APIView):
-    permission_classes = [IsAuthenticated]
+class GetClientViaEmail(generics.RetrieveAPIView):
+    permission_classes = [AllowAny]
+    serializer_class = ClientEmailMobileSerializer
+    queryset = Client.objects.all()
+    lookup_field = "email"
 
-    def get(self, request):
-        user_account = Account.objects.get(username=request.user.username)
-        print("Account: ", user_account)
-        if user_account.role == "client":
-            print("This is a client account")
-        else:
-            print("This is a partner account")
+
+class GetClientViaMobile(generics.RetrieveAPIView):
+    permission_classes = [AllowAny]
+    serializer_class = ClientEmailMobileSerializer
+    queryset = Client.objects.all()
+    lookup_field = "mobile_number"
+
+
+class GetPartnerViaEmail(generics.RetrieveAPIView):
+    permission_classes = [AllowAny]
+    serializer_class = PartnerEmailMobileSerializer
+    queryset = BusinessPartner.objects.all()
+    lookup_field = "email"
+
+
+class GetPartnerViaMobile(generics.RetrieveAPIView):
+    permission_classes = [AllowAny]
+    serializer_class = PartnerEmailMobileSerializer
+    queryset = BusinessPartner.objects.all()
+    lookup_field = "mobile_number"
 
 
 class UpdateAccountView(generics.UpdateAPIView):
