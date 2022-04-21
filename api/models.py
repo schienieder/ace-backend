@@ -146,7 +146,7 @@ class AffiliationRequest(models.Model):
     task = models.CharField(max_length=150)
     task_status = models.CharField(max_length=20, default="On Going", blank="True")
     status = models.CharField(max_length=10, default="Pending", blank=True)
-    created_at = models.TimeField(auto_now_add=True, blank=True)
+    created_at = models.DateField(auto_now_add=True, blank=True, null=True)
 
     def __str__(self):
         return self.event.event_name

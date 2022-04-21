@@ -44,6 +44,8 @@ from django.shortcuts import render
 from email.mime.image import MIMEImage
 import os
 from django.core import serializers
+import json
+from django.core.serializers.json import DjangoJSONEncoder
 
 # Create your views here.
 class CreateAccountView(generics.CreateAPIView):
@@ -510,7 +512,48 @@ class GetEventView(generics.RetrieveAPIView):
 class DashboardEvents(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = EventSerializer
-    queryset = Event.objects.all()[:5]
+    queryset = Event.objects.filter(
+        date_schedule__range=[date.today(), date(date.today().year, 12, 31)]
+    )[:5]
+
+
+class DashboardEventsSummary(views.APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, format=None):
+        events_summary = (
+            Event.objects.filter(
+                date_schedule__range=[
+                    date(date.today().year, 1, 31),
+                    date(date.today().year, 12, 31),
+                ]
+            )
+            .annotate(month=TruncMonth("date_schedule"))
+            .values("month")
+            .annotate(total=Count("pk"))
+        )
+        json_events_summary = json.dumps(list(events_summary), cls=DjangoJSONEncoder)
+        return Response(json_events_summary)
+
+
+class PartnerDashboardEvents(views.APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, format=None):
+        partner = BusinessPartner.objects.get(account__id=request.user.id)
+        partner_accepted_tasks = AffiliationRequest.objects.filter(
+            partner=partner, status="Accepted"
+        ).values_list("event")
+        partner_events = Event.objects.filter(
+            pk__in=partner_accepted_tasks,
+            date_schedule__range=[date.today(), date(date.today().year, 12, 31)],
+        )[:5]
+        serializer = EventSerializer(partner_events, many=True)
+        return Response(serializer.data)
+        # if serializer.is_valid(raise_exception=True):
+        #     serializer.save()
+        #     return Response(serializer.data, status=status.HTTP_200_OK)
+        # return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 # class DashboardMonthlyEvents(generics.ListAPIView):
@@ -591,6 +634,25 @@ class GetSalesPerMonth(views.APIView):
         return Response(data)
 
 
+class GetMonthlySales(views.APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, format=None):
+        monthly_sales = (
+            Event.objects.filter(
+                date_schedule__range=[
+                    date(date.today().year, 1, 1),
+                    date.today(),
+                ],
+            )
+            .annotate(month=TruncMonth("date_schedule"))
+            .values("month")
+            .annotate(total=Sum("package_cost"))
+        )
+        json_monthly_sales = json.dumps(list(monthly_sales), cls=DjangoJSONEncoder)
+        return Response(json_monthly_sales)
+
+
 class GetTotalSales(views.APIView):
     permission_classes = [IsAuthenticated]
 
@@ -638,7 +700,50 @@ class GetAffiliationView(generics.RetrieveAPIView):
 class DashboardAffiliations(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = AffiliationSerializer
-    queryset = AffiliationRequest.objects.all()[:5]
+    queryset = AffiliationRequest.objects.filter(
+        created_at__range=[date.today(), date(date.today().year, 12, 31)]
+    )[:5]
+
+
+class PartnerDashboardAffiliations(views.APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, format=None):
+        partner = BusinessPartner.objects.get(account__id=request.user.id)
+        partner_requests = AffiliationRequest.objects.filter(
+            partner=partner,
+            created_at__range=[date.today(), date(date.today().year, 12, 31)],
+        )
+        serializer = AffiliationSerializer(partner_requests, many=True)
+        return Response(serializer.data)
+
+
+class PartnerRequestsView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = AffiliationSerializer
+
+    def get_queryset(self):
+        partner = BusinessPartner.objects.get(account__id=self.request.user.id)
+        partner_requests = AffiliationRequest.objects.filter(
+            partner=partner,
+            created_at__range=[date.today(), date(date.today().year, 12, 31)],
+            status="Pending",
+        )
+        return partner_requests
+
+
+class PartnerTasksView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = AffiliationSerializer
+
+    def get_queryset(self):
+        partner = BusinessPartner.objects.get(account__id=self.request.user.id)
+        partner_tasks = AffiliationRequest.objects.filter(
+            partner=partner,
+            created_at__range=[date.today(), date(date.today().year, 12, 31)],
+            status="Accepted",
+        )
+        return partner_tasks
 
 
 class UpdateRequestView(generics.UpdateAPIView):
@@ -1049,13 +1154,58 @@ class GetCoutesyRateForecast(views.APIView):
 
 
 # CHAT ROOM VIEWS
-class GetMemberRooms(generics.ListAPIView):
+class CreateChatRoom(generics.CreateAPIView):
     permission_classes = [IsAuthenticated]
-    serializer_class = RoomMemberSerializer
-    queryset = RoomMember.objects.all()
+    serializer_class = ChatRoomSerializer
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.serializer_class(
+            data=request.data, context={"request": request}
+        )
+
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class GetChatRoom(generics.RetrieveAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = ChatRoomSerializer
+    lookup_field = "room_key"
 
     def get_queryset(self):
-        return RoomMember.objects.filter(member=self.request.user.username)
+        room = ChatRoom.objects.filter(room_key=self.kwargs["room_key"])
+        return room
+
+
+class JoinChatRoom(generics.CreateAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = RoomMemberSerializer
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.serializer_class(
+            data=request.data, context={"request": request}
+        )
+
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class GetMemberRooms(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = ChatRoomSerializer
+
+    def get_queryset(self):
+        member = RoomMember.objects.filter(
+            member=self.request.user.username
+        ).values_list("room")
+        member_rooms = ChatRoom.objects.filter(pk__in=member)
+        return member_rooms
 
 
 # LIST VIEWS
@@ -1074,7 +1224,9 @@ class AllClientsView(generics.ListAPIView):
 class AllClientBookingsView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = EventBookingSerializer
-    queryset = EventBookings.objects.all()
+    queryset = EventBookings.objects.filter(
+        desired_date__range=[date.today(), date(date.today().year, 12, 31)]
+    )
 
 
 class AllEventsView(generics.ListAPIView):
