@@ -14,7 +14,6 @@ cmdstanpy==0.9.5
 colorama==0.4.4
 constantly==15.1.0
 convertdate==2.4.0
-cryptography==36.0.1
 cycler==0.11.0
 Cython==0.29.27
 daphne==3.0.2
@@ -27,7 +26,6 @@ djangorestframework==3.12.4
 djangorestframework-simplejwt==4.7.2
 ephem==4.1.3
 fonttools==4.29.1
-gpytorch==1.6.0
 gunicorn==20.1.0
 hijri-converter==2.2.2
 holidays==0.12
