@@ -697,12 +697,46 @@ class GetAffiliationView(generics.RetrieveAPIView):
     queryset = AffiliationRequest.objects.all()
 
 
-class DashboardAffiliations(generics.ListAPIView):
+# class GetAllAffiliations(views.APIView):
+#     permission_classes = [IsAuthenticated]
+
+#     def get(self, request, format=None):
+
+#         # GET THE ID OF THE OF THE EVENTS & USE IT FOR FILTERING
+#         event_ids = Event.objects.filter(
+#             date_schedule__range=[date.today(), date(date.today().year, 12, 31)]
+#         ).values_list("id")
+#         affiliations_list = AffiliationRequest.objects.filter(
+#             event__in=event_ids
+#         ).values(
+#             "event__event_name", "partner__first_name", "partner__last_name", "status"
+#         )
+
+#         json_affiliations_list = json.dumps(
+#             list(affiliations_list), cls=DjangoJSONEncoder
+#         )
+
+#         return Response(json_affiliations_list)
+
+
+class DashboardAffiliations(views.APIView):
     permission_classes = [IsAuthenticated]
-    serializer_class = AffiliationSerializer
-    queryset = AffiliationRequest.objects.filter(
-        created_at__range=[date.today(), date(date.today().year, 12, 31)]
-    )[:5]
+
+    def get(self, request, format=None):
+
+        # GET THE ID OF THE OF THE EVENTS & USE IT FOR FILTERING
+        event_ids = Event.objects.filter(
+            date_schedule__range=[date.today(), date(date.today().year, 12, 31)]
+        ).values_list("id")
+        affiliations_list = AffiliationRequest.objects.filter(
+            event__in=event_ids
+        ).values("task", "status")[:5]
+
+        json_affiliations_list = json.dumps(
+            list(affiliations_list), cls=DjangoJSONEncoder
+        )
+
+        return Response(json_affiliations_list)
 
 
 class PartnerDashboardAffiliations(views.APIView):
@@ -769,10 +803,26 @@ class DestroyRequestView(generics.DestroyAPIView):
 
 
 # RATING VIEWS
-class CreateRatingView(generics.CreateAPIView):
+class CreateRatingView(views.APIView):
     permission_classes = [AllowAny]
-    serializer_class = RatingSerializer
-    queryset = Rating.objects.all()
+
+    def post(self, request, event_id):
+        event = Event.objects.get(pk=event_id)
+        rating_data = {
+            "event_name": event.event_name,
+            "event_date": event.date_schedule,
+            "venue_rate": request.data.get("venue_rate"),
+            "catering_rate": request.data.get("catering_rate"),
+            "styling_rate": request.data.get("styling_rate"),
+            "mc_rate": request.data.get("mc_rate"),
+            "presentation_rate": request.data.get("presentation_rate"),
+            "courtesy_rate": request.data.get("courtesy_rate"),
+        }
+        serializer = RatingSerializer(data=rating_data)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class GetVenueRateForecast(views.APIView):
@@ -1208,6 +1258,20 @@ class GetMemberRooms(generics.ListAPIView):
         return member_rooms
 
 
+class DestroyChatRoom(generics.DestroyAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = ChatRoomSerializer
+    lookup_field = "room_key"
+
+    def destroy(self, request, *args, **kwargs):
+        room = ChatRoom.objects.get(room_key=self.kwargs["room_key"])
+        self.perform_destroy(room)
+        return Response(
+            {"message": "ChatRoom Deleted Successfully!"},
+            status=status.HTTP_204_NO_CONTENT,
+        )
+
+
 # LIST VIEWS
 class AllBusinessPartnersView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
@@ -1240,13 +1304,31 @@ class AllEventsView(generics.ListAPIView):
 class AllInterviewsView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = InterviewSerializer
-    queryset = InterviewSchedule.objects.all()
+    queryset = InterviewSchedule.objects.filter(
+        date__range=[date.today(), date(date.today().year, 12, 31)]
+    )
 
 
-class AllAffiliationsView(generics.ListAPIView):
+class AllAffiliationsView(views.APIView):
     permission_classes = [IsAuthenticated]
-    serializer_class = AffiliationSerializer
-    queryset = AffiliationRequest.objects.all()
+
+    def get(self, request, format=None):
+
+        # GET THE ID OF THE OF THE EVENTS & USE IT FOR FILTERING
+        event_ids = Event.objects.filter(
+            date_schedule__range=[date.today(), date(date.today().year, 12, 31)]
+        ).values_list("id")
+        affiliations_list = AffiliationRequest.objects.filter(
+            event__in=event_ids
+        ).values(
+            "event__event_name", "partner__first_name", "partner__last_name", "status"
+        )
+
+        json_affiliations_list = json.dumps(
+            list(affiliations_list), cls=DjangoJSONEncoder
+        )
+
+        return Response(json_affiliations_list)
 
 
 class AllRequestsView(generics.ListAPIView):
@@ -1306,7 +1388,7 @@ class AllCompletedTaskView(generics.ListAPIView):
 class AllChatRooms(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = ChatRoomSerializer
-    queryset = ChatRoom.objects.all()
+    queryset = ChatRoom.objects.all().order_by("pk")
 
 
 class AllRoomChatMessages(generics.ListAPIView):

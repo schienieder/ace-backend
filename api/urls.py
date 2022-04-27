@@ -55,6 +55,7 @@ from api.views import (
     GetChatRoom,
     JoinChatRoom,
     GetMemberRooms,
+    DestroyChatRoom,
     PartnerDashboardEvents,
     PartnerDashboardAffiliations,
     PartnerTasksView,
@@ -189,6 +190,7 @@ urlpatterns = [
     # AFFILIATIONS VIEW PATHS
     path("add_affiliation/", CreateAffiliationView.as_view(), name="createAffiliation"),
     path("affiliation/<int:pk>", GetAffiliationView.as_view(), name="affiliationView"),
+    # path("dummy/", GetAllAffiliations.as_view(), name="dummy"),
     path(
         "dashboard_affiliations/",
         DashboardAffiliations.as_view(),
@@ -214,7 +216,7 @@ urlpatterns = [
         "request/destroy/<int:pk>", DestroyRequestView.as_view(), name="destroyRequest"
     ),
     # RATING VIEW PATHS
-    path("add_rating/", CreateRatingView.as_view(), name="addRating"),
+    path("add_rating/<int:event_id>", CreateRatingView.as_view(), name="addRating"),
     path("venue_forecast/", GetVenueRateForecast.as_view(), name="venueForecast"),
     path(
         "catering_forecast/", GetCateringRateForecast.as_view(), name="cateringForecast"
@@ -236,6 +238,11 @@ urlpatterns = [
     path("chatroom/<str:room_key>", GetChatRoom.as_view(), name="getChatRoom"),
     path("join_chatroom/", JoinChatRoom.as_view(), name="joinChatRoom"),
     path("member_rooms/", GetMemberRooms.as_view(), name="memberRooms"),
+    path(
+        "chatroom/destroy/<str:room_key>",
+        DestroyChatRoom.as_view(),
+        name="destroyChatRoom",
+    ),
     # LIST VIEW PATHS
     path(
         "partners_list/", AllBusinessPartnersView.as_view(), name="allBusinessPartners"

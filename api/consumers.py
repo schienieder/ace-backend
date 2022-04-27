@@ -18,7 +18,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     async def receive(self, text_data):
         text_data_json = json.loads(text_data)
-        message = text_data_json["message"]
+        content = text_data_json["content"]
         username = text_data_json["username"]
 
         # FIND ROOM
@@ -49,7 +49,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
         # SAVE CHAT MESSAGES
         chat = Chat(
-            content=message, room=room, sender_name=sender_name, username=username
+            content=content, room=room, sender_name=sender_name, username=username
         )
         await database_sync_to_async(chat.save)()
 
@@ -57,22 +57,22 @@ class ChatConsumer(AsyncWebsocketConsumer):
             self.room_group_name,
             {
                 "type": "chat_message",
-                "message": message,
-                "sender": sender_name,
+                "content": content,
+                "sender_name": sender_name,
                 "username": username,
             },
         )
 
     async def chat_message(self, event):
-        message = event["message"]
-        sender = event["sender"]
+        content = event["content"]
+        sender = event["sender_name"]
         username = event["username"]
         await self.send(
             text_data=json.dumps(
                 {
                     "type": "chat",
-                    "message": message,
-                    "sender": sender,
+                    "content": content,
+                    "sender_name": sender,
                     "username": username,
                 }
             )
