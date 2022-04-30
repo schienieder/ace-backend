@@ -126,6 +126,19 @@ class Event(models.Model):
         ordering = ["date_schedule"]
 
 
+class TransactionLog(models.Model):
+    event = models.ForeignKey(Event, on_delete=models.CASCADE)
+    payment = models.IntegerField(default=0)
+    status = models.CharField(max_length=20, default="Partially Paid")
+    created_at = models.DateField(auto_now_add=True, blank=True, null=True)
+
+    def __str__(self):
+        return self.event.event_name
+
+    class Meta:
+        ordering = ["created_at"]
+
+
 class InterviewSchedule(models.Model):
     location = models.CharField(max_length=250)
     date = models.DateField()
@@ -143,7 +156,6 @@ class InterviewSchedule(models.Model):
 class AffiliationRequest(models.Model):
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
     partner = models.ForeignKey(BusinessPartner, on_delete=models.CASCADE)
-    task = models.CharField(max_length=150)
     task_status = models.CharField(max_length=20, default="On Going", blank="True")
     status = models.CharField(max_length=10, default="Pending", blank=True)
     created_at = models.DateField(auto_now_add=True, blank=True, null=True)

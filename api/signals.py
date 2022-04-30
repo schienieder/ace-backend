@@ -1,3 +1,4 @@
+from multiprocessing import Event
 from django.db.models.signals import post_delete, post_save, pre_delete
 from django.dispatch import receiver
 from api.models import (
@@ -6,6 +7,8 @@ from api.models import (
     BusinessPartner,
     InterviewSchedule,
     EventBookings,
+    Event,
+    TransactionLog,
 )
 
 # signals here
@@ -31,3 +34,10 @@ def update_booking_status(sender, instance, *args, **kwargs):
 )
 def delete_partner_account(sender, instance, *args, **kwargs):
     EventBookings.objects.filter(booked_by=instance.client.id).update(status="Pending")
+
+
+@receiver(post_save, sender=Event, dispatch_uid="create_update_event_signal")
+def delete_partner_account(sender, instance, *args, **kwargs):
+    TransactionLog.objects.create(
+        event=instance, payment=instance.client_payment, status=instance.payment_status
+    )

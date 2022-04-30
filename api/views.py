@@ -19,6 +19,7 @@ from api.serializers import (
     UsernameSerializer,
     ClientEmailMobileSerializer,
     PartnerEmailMobileSerializer,
+    TransactionSerializer,
 )
 from api.models import (
     Account,
@@ -32,6 +33,7 @@ from api.models import (
     ChatRoom,
     Chat,
     RoomMember,
+    TransactionLog,
 )
 from rest_framework.parsers import MultiPartParser, FormParser
 from django.db.models import Avg, Sum, Count
@@ -531,6 +533,7 @@ class DashboardEventsSummary(views.APIView):
             .annotate(month=TruncMonth("date_schedule"))
             .values("month")
             .annotate(total=Count("pk"))
+            .order_by("month")
         )
         json_events_summary = json.dumps(list(events_summary), cls=DjangoJSONEncoder)
         return Response(json_events_summary)
@@ -634,6 +637,8 @@ class GetSalesPerMonth(views.APIView):
         return Response(data)
 
 
+# PASS URL PARAM
+# TO SOLVE SIR MARK REQUEST
 class GetMonthlySales(views.APIView):
     permission_classes = [IsAuthenticated]
 
@@ -648,11 +653,14 @@ class GetMonthlySales(views.APIView):
             .annotate(month=TruncMonth("date_schedule"))
             .values("month")
             .annotate(total=Sum("package_cost"))
+            .order_by("month")
         )
         json_monthly_sales = json.dumps(list(monthly_sales), cls=DjangoJSONEncoder)
         return Response(json_monthly_sales)
 
 
+# PASS YEAR URL PARAM
+# TO SOLVE SIR MARK REQUEST
 class GetTotalSales(views.APIView):
     permission_classes = [IsAuthenticated]
 
@@ -685,10 +693,32 @@ class GetTotalSales(views.APIView):
 #     venue_forecast = m.predict(future_ratings)
 
 # AFFILIATION VIEWS
-class CreateAffiliationView(generics.CreateAPIView):
+class CreateAffiliationView(views.APIView):
     permission_classes = [IsAuthenticated]
-    serializer_class = AffiliationSerializer
-    queryset = AffiliationRequest.objects.all()
+    global hasError
+
+    def post(self, request):
+        hasError = False
+        partners = request.data.get("partners")
+        for p in partners:
+            serializer = AffiliationSerializer(
+                data={"event": request.data.get("event"), "partner": p["value"]},
+                partial=True,
+            )
+            if serializer.is_valid(raise_exception=True):
+                serializer.save()
+            else:
+                hasError = True
+
+        if hasError:
+            return Response({"error": "400"}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"success": "200"}, status=status.HTTP_200_OK)
+
+        # serializer = RatingSerializer(data=rating_data)
+        # if serializer.is_valid(raise_exception=True):
+        #     serializer.save()
+        #     return Response(serializer.data, status=status.HTTP_200_OK)
+        # return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class GetAffiliationView(generics.RetrieveAPIView):
@@ -730,7 +760,7 @@ class DashboardAffiliations(views.APIView):
         ).values_list("id")
         affiliations_list = AffiliationRequest.objects.filter(
             event__in=event_ids
-        ).values("task", "status")[:5]
+        ).values("partner__first_name", "partner__last_name", "status")[:5]
 
         json_affiliations_list = json.dumps(
             list(affiliations_list), cls=DjangoJSONEncoder
@@ -1272,6 +1302,62 @@ class DestroyChatRoom(generics.DestroyAPIView):
         )
 
 
+class PresentTransactions(views.APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, format=None):
+
+        # GET THE ID OF THE OF THE EVENTS & USE IT FOR FILTERING
+        event_ids = Event.objects.filter(
+            date_schedule__range=[date.today(), date(date.today().year, 12, 31)]
+        ).values_list("id")
+        transactions_list = (
+            TransactionLog.objects.filter(event__in=event_ids)
+            .values(
+                "id",
+                "event__event_name",
+                "event__date_schedule",
+                "event__package_cost",
+                "payment",
+                "status",
+            )
+            .order_by("event__date_schedule")
+        )
+
+        json_transactions_list = json.dumps(
+            list(transactions_list), cls=DjangoJSONEncoder
+        )
+
+        return Response(json_transactions_list)
+
+
+# PASS YEAR URL PARAM
+# TO SOLVE SIR MARK REQUEST
+class PastTransactions(views.APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, year):
+
+        transactions_list = (
+            TransactionLog.objects.filter(date_schedule__year=year)
+            .values(
+                "id",
+                "event__event_name",
+                "event__date_schedule",
+                "event__package_cost",
+                "payment",
+                "status",
+            )
+            .order_by("event__date_schedule")
+        )
+
+        json_transactions_list = json.dumps(
+            list(transactions_list), cls=DjangoJSONEncoder
+        )
+
+        return Response(json_transactions_list)
+
+
 # LIST VIEWS
 class AllBusinessPartnersView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
@@ -1321,7 +1407,11 @@ class AllAffiliationsView(views.APIView):
         affiliations_list = AffiliationRequest.objects.filter(
             event__in=event_ids
         ).values(
-            "event__event_name", "partner__first_name", "partner__last_name", "status"
+            "id",
+            "event__event_name",
+            "partner__first_name",
+            "partner__last_name",
+            "status",
         )
 
         json_affiliations_list = json.dumps(

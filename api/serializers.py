@@ -1,3 +1,4 @@
+from dataclasses import field
 from rest_framework import serializers
 from api.models import (
     Account,
@@ -12,6 +13,7 @@ from api.models import (
     Rating,
     ChatRoom,
     RoomMember,
+    TransactionLog,
 )
 
 
@@ -267,4 +269,11 @@ class PartnerEmailMobileSerializer(serializers.ModelSerializer):
     class Meta:
         model = BusinessPartner
         fields = ["id", "email", "mobile_number"]
+        extra_kwargs = {"id": {"read_only": True}}
+
+
+class TransactionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TransactionLog
+        field = "__all__"
         extra_kwargs = {"id": {"read_only": True}}

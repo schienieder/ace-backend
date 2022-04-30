@@ -12,6 +12,7 @@ from api.models import (
     ChatRoom,
     Chat,
     RoomMember,
+    TransactionLog,
 )
 
 # Register your models here.
@@ -27,3 +28,4 @@ admin.site.register(Rating)
 admin.site.register(ChatRoom)
 admin.site.register(Chat)
 admin.site.register(RoomMember)
+admin.site.register(TransactionLog)

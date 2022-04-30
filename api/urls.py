@@ -60,6 +60,8 @@ from api.views import (
     PartnerDashboardAffiliations,
     PartnerTasksView,
     PartnerRequestsView,
+    PresentTransactions,
+    PastTransactions,
     AllBusinessPartnersView,
     AllClientsView,
     AllClientBookingsView,
@@ -242,6 +244,17 @@ urlpatterns = [
         "chatroom/destroy/<str:room_key>",
         DestroyChatRoom.as_view(),
         name="destroyChatRoom",
+    ),
+    # TRANSACTION VIEW PATHS
+    path(
+        "present_transactions/",
+        PresentTransactions.as_view(),
+        name="presentTransactions",
+    ),
+    path(
+        "past_transactions/<str:year>",
+        PastTransactions.as_view(),
+        name="pastTransactions",
     ),
     # LIST VIEW PATHS
     path(
