@@ -37,7 +37,6 @@ from api.views import (
     DestroyEventView,
     GetIncuredEvents,
     GetTotalSales,
-    GetSalesPerMonth,
     GetMonthlySales,
     CreateAffiliationView,
     GetAffiliationView,
@@ -60,6 +59,7 @@ from api.views import (
     PartnerDashboardAffiliations,
     PartnerTasksView,
     PartnerRequestsView,
+    GetSalesYears,
     PresentTransactions,
     PastTransactions,
     AllBusinessPartnersView,
@@ -187,8 +187,14 @@ urlpatterns = [
     path("update_event/<int:pk>", UpdateEventView.as_view(), name="updateEvent"),
     path("event/destroy/<int:pk>", DestroyEventView.as_view(), name="eventDestroy"),
     path("incured_events/", GetIncuredEvents.as_view(), name="incuredEvents"),
-    path("total_sales/", GetTotalSales.as_view(), name="totalSales"),
-    path("monthly_sales/", GetMonthlySales.as_view(), name="monthlySales"),
+    path(
+        "total_sales/<str:transaction_year>", GetTotalSales.as_view(), name="totalSales"
+    ),
+    path(
+        "monthly_sales/<str:transaction_year>",
+        GetMonthlySales.as_view(),
+        name="monthlySales",
+    ),
     # AFFILIATIONS VIEW PATHS
     path("add_affiliation/", CreateAffiliationView.as_view(), name="createAffiliation"),
     path("affiliation/<int:pk>", GetAffiliationView.as_view(), name="affiliationView"),
@@ -246,6 +252,11 @@ urlpatterns = [
         name="destroyChatRoom",
     ),
     # TRANSACTION VIEW PATHS
+    path(
+        "sales_years/",
+        GetSalesYears.as_view(),
+        name="salesYears",
+    ),
     path(
         "present_transactions/",
         PresentTransactions.as_view(),

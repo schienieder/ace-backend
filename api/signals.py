@@ -14,14 +14,14 @@ from api.models import (
 # signals here
 @receiver(post_delete, sender=Client, dispatch_uid="delete_client_account_signal")
 def delete_client_account(sender, instance, *args, **kwargs):
-    Account.objects.filter(id=instance.account.id).delete()
+    Account.objects.get(id=instance.account.id).delete()
 
 
 @receiver(
     post_delete, sender=BusinessPartner, dispatch_uid="delete_partner_account_signal"
 )
 def delete_partner_account(sender, instance, *args, **kwargs):
-    Account.objects.filter(id=instance.account.id).delete()
+    Account.objects.get(id=instance.account.id).delete()
 
 
 @receiver(post_save, sender=InterviewSchedule, dispatch_uid="update_booking_status")
@@ -29,15 +29,13 @@ def update_booking_status(sender, instance, *args, **kwargs):
     EventBookings.objects.filter(id=instance.booking.id).update(status="Accepted")
 
 
-@receiver(
-    pre_delete, sender=InterviewSchedule, dispatch_uid="delete_partner_account_signal"
-)
-def delete_partner_account(sender, instance, *args, **kwargs):
+@receiver(pre_delete, sender=InterviewSchedule, dispatch_uid="delete_interview_signal")
+def delete_interview(sender, instance, *args, **kwargs):
     EventBookings.objects.filter(booked_by=instance.client.id).update(status="Pending")
 
 
 @receiver(post_save, sender=Event, dispatch_uid="create_update_event_signal")
-def delete_partner_account(sender, instance, *args, **kwargs):
+def create_or_update_event(sender, instance, *args, **kwargs):
     TransactionLog.objects.create(
         event=instance, payment=instance.client_payment, status=instance.payment_status
     )

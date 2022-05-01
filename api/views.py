@@ -48,6 +48,7 @@ import os
 from django.core import serializers
 import json
 from django.core.serializers.json import DjangoJSONEncoder
+from django.db.models import F
 
 # Create your views here.
 class CreateAccountView(generics.CreateAPIView):
@@ -623,18 +624,24 @@ class GetIncuredEvents(generics.ListAPIView):
     )
 
 
-class GetSalesPerMonth(views.APIView):
+# PASS URL PARAM
+# TO SOLVE SIR MARK REQUEST
+class GetSalesYears(views.APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        monthly_sales = Event.objects.raw(
-            """SELECT EXTRACT(MONTH FROM date_schedule) as extracted_month,
-                SUM(package_cost) as monthly_sales FROM api_event
-                GROUP BY extracted_month ORDER BY extracted_month ASC"""
+        sales_years = (
+            TransactionLog.objects.filter(
+                event__date_schedule__year__lte=date.today().year
+            )
+            .order_by("-event__date_schedule__year")
+            .distinct("event__date_schedule__year")
+            .values(transaction_year=F("event__date_schedule__year"))
         )
-        data = serializers.serialize("json", monthly_sales)
-        print(data)
-        return Response(data)
+
+        json_sales_years = json.dumps(list(sales_years))
+
+        return Response(json_sales_years)
 
 
 # PASS URL PARAM
@@ -642,21 +649,37 @@ class GetSalesPerMonth(views.APIView):
 class GetMonthlySales(views.APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, format=None):
-        monthly_sales = (
-            Event.objects.filter(
-                date_schedule__range=[
-                    date(date.today().year, 1, 1),
-                    date.today(),
-                ],
+    def get(self, request, transaction_year):
+        if int(transaction_year) == date.today().year:
+            monthly_sales = (
+                Event.objects.filter(
+                    date_schedule__range=[
+                        date(date.today().year, 1, 1),
+                        date.today(),
+                    ],
+                )
+                .annotate(month=TruncMonth("date_schedule"))
+                .values("month")
+                .annotate(total=Sum("package_cost"))
+                .order_by("month")
             )
-            .annotate(month=TruncMonth("date_schedule"))
-            .values("month")
-            .annotate(total=Sum("package_cost"))
-            .order_by("month")
-        )
-        json_monthly_sales = json.dumps(list(monthly_sales), cls=DjangoJSONEncoder)
-        return Response(json_monthly_sales)
+            json_monthly_sales = json.dumps(list(monthly_sales), cls=DjangoJSONEncoder)
+            return Response(json_monthly_sales)
+        else:
+            monthly_sales = (
+                Event.objects.filter(
+                    date_schedule__range=[
+                        date(int(transaction_year), 1, 1),
+                        date(int(transaction_year), 12, 31),
+                    ],
+                )
+                .annotate(month=TruncMonth("date_schedule"))
+                .values("month")
+                .annotate(total=Sum("package_cost"))
+                .order_by("month")
+            )
+            json_monthly_sales = json.dumps(list(monthly_sales), cls=DjangoJSONEncoder)
+            return Response(json_monthly_sales)
 
 
 # PASS YEAR URL PARAM
@@ -664,11 +687,20 @@ class GetMonthlySales(views.APIView):
 class GetTotalSales(views.APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request):
-        total_sales = Event.objects.filter(
-            date_schedule__range=[date(date.today().year, 1, 1), date.today()]
-        ).aggregate(total_sales=Sum("package_cost"))
-        return Response(total_sales)
+    def get(self, request, transaction_year):
+        if int(transaction_year) == date.today().year:
+            total_sales = Event.objects.filter(
+                date_schedule__range=[date(date.today().year, 1, 1), date.today()]
+            ).aggregate(total_sales=Sum("package_cost"))
+            return Response(total_sales)
+        else:
+            total_sales = Event.objects.filter(
+                date_schedule__range=[
+                    date(int(transaction_year), 1, 1),
+                    date(int(transaction_year), 12, 31),
+                ]
+            ).aggregate(total_sales=Sum("package_cost"))
+            return Response(total_sales)
 
 
 # class VenueSatisfactionForecast(views.APIView):
