@@ -37,5 +37,7 @@ def delete_interview(sender, instance, *args, **kwargs):
 @receiver(post_save, sender=Event, dispatch_uid="create_update_event_signal")
 def create_or_update_event(sender, instance, *args, **kwargs):
     TransactionLog.objects.create(
-        event=instance, payment=instance.client_payment, status=instance.payment_status
+        event=instance,
+        total_payment=instance.client_payment,
+        status=instance.payment_status,
     )

@@ -1347,11 +1347,12 @@ class PresentTransactions(views.APIView):
             TransactionLog.objects.filter(event__in=event_ids)
             .values(
                 "id",
-                "event__event_name",
-                "event__date_schedule",
-                "event__package_cost",
-                "payment",
-                "status",
+                event_name=F("event__event_name"),
+                date_schedule=F("event__date_schedule"),
+                package_cost=F("event__package_cost"),
+                client_payment=F("total_payment"),
+                payment_status=F("status"),
+                last_update=F("created_at"),
             )
             .order_by("event__date_schedule")
         )
@@ -1374,11 +1375,12 @@ class PastTransactions(views.APIView):
             TransactionLog.objects.filter(date_schedule__year=year)
             .values(
                 "id",
-                "event__event_name",
-                "event__date_schedule",
-                "event__package_cost",
-                "payment",
-                "status",
+                event_name=F("event__event_name"),
+                date_schedule=F("event__date_schedule"),
+                package_cost=F("event__package_cost"),
+                client_payment=F("total_payment"),
+                payment_status=F("status"),
+                last_update=F("created_at"),
             )
             .order_by("event__date_schedule")
         )

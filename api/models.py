@@ -128,7 +128,7 @@ class Event(models.Model):
 
 class TransactionLog(models.Model):
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
-    payment = models.IntegerField(default=0)
+    total_payment = models.IntegerField(default=0)
     status = models.CharField(max_length=20, default="Partially Paid")
     created_at = models.DateField(auto_now_add=True, blank=True, null=True)
 
@@ -211,6 +211,7 @@ class Chat(models.Model):
     room = models.ForeignKey(ChatRoom, on_delete=models.CASCADE)
     sender_name = models.CharField(max_length=100, blank=True)
     username = models.CharField(max_length=50, blank=True)
+    created_at = models.DateField(auto_now_add=True, blank=True, null=True)
 
     def __str__(self):
         return self.sender_name
