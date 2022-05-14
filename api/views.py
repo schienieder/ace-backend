@@ -404,7 +404,8 @@ class CreateInterviewView(generics.CreateAPIView):
         template = render_to_string("api/email_template.html", context)
 
         email_from = settings.EMAIL_HOST_USER
-        recipient = ["schieniezel@gmail.com"]
+        # recipient = ["schieniezel@gmail.com"]
+        recipient = [client.email]
 
         my_email = EmailMultiAlternatives(subject, template, email_from, recipient)
         my_email.mixed_subtype = "related"
@@ -998,7 +999,10 @@ class GetCateringForecast(views.APIView):
     def get(self, request):
         training_query = (
             Rating.objects.filter(
-                event_date__range=[date(date.today().year - 2, 1, 1), date(date.today().year - 2, 12, 31)]
+                event_date__range=[
+                    date(date.today().year - 2, 1, 1),
+                    date(date.today().year - 2, 12, 31),
+                ]
             )
             .values("event_date", "catering_rate")
             .order_by("event_date")
@@ -1009,7 +1013,10 @@ class GetCateringForecast(views.APIView):
 
         testing_query = (
             Rating.objects.filter(
-                event_date__range=[date(date.today().year - 1, 1, 1), date(date.today().year - 1, 12, 31)]
+                event_date__range=[
+                    date(date.today().year - 1, 1, 1),
+                    date(date.today().year - 1, 12, 31),
+                ]
             )
             .values("event_date", "catering_rate")
             .order_by("event_date")
@@ -1030,7 +1037,9 @@ class GetCateringForecast(views.APIView):
         y_pred_df.index = testing_df.index
         y_pred_out = y_pred_df["Predictions"]
 
-        forecast_dates = pd.date_range(start=f'{date.today().year}-01-01', periods=365).date
+        forecast_dates = pd.date_range(
+            start=f"{date.today().year}-01-01", periods=365
+        ).date
         y_pred_out.index = forecast_dates
         forecast_df = pd.DataFrame(forecast_dates)
         forecast_df["event_date"] = forecast_dates
@@ -1048,7 +1057,10 @@ class GetStylingForecast(views.APIView):
     def get(self, request):
         training_query = (
             Rating.objects.filter(
-                event_date__range=[date(date.today().year - 2, 1, 1), date(date.today().year - 2, 12, 31)]
+                event_date__range=[
+                    date(date.today().year - 2, 1, 1),
+                    date(date.today().year - 2, 12, 31),
+                ]
             )
             .values("event_date", "styling_rate")
             .order_by("event_date")
@@ -1059,7 +1071,10 @@ class GetStylingForecast(views.APIView):
 
         testing_query = (
             Rating.objects.filter(
-                event_date__range=[date(date.today().year - 1, 1, 1), date(date.today().year - 1, 12, 31)]
+                event_date__range=[
+                    date(date.today().year - 1, 1, 1),
+                    date(date.today().year - 1, 12, 31),
+                ]
             )
             .values("event_date", "styling_rate")
             .order_by("event_date")
@@ -1080,7 +1095,9 @@ class GetStylingForecast(views.APIView):
         y_pred_df.index = testing_df.index
         y_pred_out = y_pred_df["Predictions"]
 
-        forecast_dates = pd.date_range(start=f"{date.today().year}-01-01", periods=365).date
+        forecast_dates = pd.date_range(
+            start=f"{date.today().year}-01-01", periods=365
+        ).date
         y_pred_out.index = forecast_dates
         forecast_df = pd.DataFrame(forecast_dates)
         forecast_df["event_date"] = forecast_dates
@@ -1098,7 +1115,10 @@ class GetMCForecast(views.APIView):
     def get(self, request):
         training_query = (
             Rating.objects.filter(
-                event_date__range=[date(date.today().year - 2, 1, 1), date(date.today().year - 2, 12, 31)]
+                event_date__range=[
+                    date(date.today().year - 2, 1, 1),
+                    date(date.today().year - 2, 12, 31),
+                ]
             )
             .values("event_date", "mc_rate")
             .order_by("event_date")
@@ -1109,7 +1129,10 @@ class GetMCForecast(views.APIView):
 
         testing_query = (
             Rating.objects.filter(
-                event_date__range=[date(date.today().year - 1, 1, 1), date(date.today().year - 1, 12, 31)]
+                event_date__range=[
+                    date(date.today().year - 1, 1, 1),
+                    date(date.today().year - 1, 12, 31),
+                ]
             )
             .values("event_date", "mc_rate")
             .order_by("event_date")
@@ -1130,7 +1153,9 @@ class GetMCForecast(views.APIView):
         y_pred_df.index = testing_df.index
         y_pred_out = y_pred_df["Predictions"]
 
-        forecast_dates = pd.date_range(start=f"{date.today().year}-01-01", periods=365).date
+        forecast_dates = pd.date_range(
+            start=f"{date.today().year}-01-01", periods=365
+        ).date
         y_pred_out.index = forecast_dates
         forecast_df = pd.DataFrame(forecast_dates)
         forecast_df["event_date"] = forecast_dates
@@ -1148,7 +1173,10 @@ class GetPresentationForecast(views.APIView):
     def get(self, request):
         training_query = (
             Rating.objects.filter(
-                event_date__range=[date(date.today().year - 2, 1, 1), date(date.today().year - 2, 12, 31)]
+                event_date__range=[
+                    date(date.today().year - 2, 1, 1),
+                    date(date.today().year - 2, 12, 31),
+                ]
             )
             .values("event_date", "presentation_rate")
             .order_by("event_date")
@@ -1159,7 +1187,10 @@ class GetPresentationForecast(views.APIView):
 
         testing_query = (
             Rating.objects.filter(
-                event_date__range=[date(date.today().year - 1, 1, 1), date(date.today().year - 1, 12, 31)]
+                event_date__range=[
+                    date(date.today().year - 1, 1, 1),
+                    date(date.today().year - 1, 12, 31),
+                ]
             )
             .values("event_date", "presentation_rate")
             .order_by("event_date")
@@ -1180,7 +1211,9 @@ class GetPresentationForecast(views.APIView):
         y_pred_df.index = testing_df.index
         y_pred_out = y_pred_df["Predictions"]
 
-        forecast_dates = pd.date_range(start=f"{date.today().year}-01-01", periods=365).date
+        forecast_dates = pd.date_range(
+            start=f"{date.today().year}-01-01", periods=365
+        ).date
         y_pred_out.index = forecast_dates
         forecast_df = pd.DataFrame(forecast_dates)
         forecast_df["event_date"] = forecast_dates
@@ -1198,7 +1231,10 @@ class GetCourtesyForecast(views.APIView):
     def get(self, request):
         training_query = (
             Rating.objects.filter(
-                event_date__range=[date(date.today().year - 2, 1, 1), date(date.today().year - 2, 12, 31)]
+                event_date__range=[
+                    date(date.today().year - 2, 1, 1),
+                    date(date.today().year - 2, 12, 31),
+                ]
             )
             .values("event_date", "courtesy_rate")
             .order_by("event_date")
@@ -1209,7 +1245,10 @@ class GetCourtesyForecast(views.APIView):
 
         testing_query = (
             Rating.objects.filter(
-                event_date__range=[date(date.today().year - 1, 1, 1), date(date.today().year - 1, 12, 31)]
+                event_date__range=[
+                    date(date.today().year - 1, 1, 1),
+                    date(date.today().year - 1, 12, 31),
+                ]
             )
             .values("event_date", "courtesy_rate")
             .order_by("event_date")
@@ -1230,7 +1269,9 @@ class GetCourtesyForecast(views.APIView):
         y_pred_df.index = testing_df.index
         y_pred_out = y_pred_df["Predictions"]
 
-        forecast_dates = pd.date_range(start=f"{date.today().year}-01-01", periods=365).date
+        forecast_dates = pd.date_range(
+            start=f"{date.today().year}-01-01", periods=365
+        ).date
         y_pred_out.index = forecast_dates
         forecast_df = pd.DataFrame(forecast_dates)
         forecast_df["event_date"] = forecast_dates
