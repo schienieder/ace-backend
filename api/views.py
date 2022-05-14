@@ -45,10 +45,11 @@ from django.template.loader import render_to_string
 from django.shortcuts import render
 from email.mime.image import MIMEImage
 import os
-from django.core import serializers
 import json
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db.models import F
+import pandas as pd
+from statsmodels.tsa.arima.model import ARIMA
 
 # Create your views here.
 class CreateAccountView(generics.CreateAPIView):
@@ -809,7 +810,7 @@ class PartnerDashboardAffiliations(views.APIView):
         partner_requests = AffiliationRequest.objects.filter(
             partner=partner,
             created_at__range=[date.today(), date(date.today().year, 12, 31)],
-        )
+        )[:5]
         serializer = AffiliationSerializer(partner_requests, many=True)
         return Response(serializer.data)
 
@@ -865,404 +866,380 @@ class DestroyRequestView(generics.DestroyAPIView):
 
 
 # RATING VIEWS
-class CreateRatingView(views.APIView):
+class CreateRatingView(generics.CreateAPIView):
     permission_classes = [AllowAny]
+    serializer_class = RatingSerializer
 
-    def post(self, request, event_id):
-        event = Event.objects.get(pk=event_id)
-        rating_data = {
-            "event_name": event.event_name,
-            "event_date": event.date_schedule,
-            "venue_rate": request.data.get("venue_rate"),
-            "catering_rate": request.data.get("catering_rate"),
-            "styling_rate": request.data.get("styling_rate"),
-            "mc_rate": request.data.get("mc_rate"),
-            "presentation_rate": request.data.get("presentation_rate"),
-            "courtesy_rate": request.data.get("courtesy_rate"),
-        }
-        serializer = RatingSerializer(data=rating_data)
+    def create(self, request, *args, **kwargs):
+        serializer = self.serializer_class(
+            data=request.data, context={"request": request}
+        )
+
         if serializer.is_valid(raise_exception=True):
             serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class GetVenueRateForecast(views.APIView):
+# class CreateRatingView(views.APIView):
+#     permission_classes = [AllowAny]
+
+#     def post(self, request, event_id):
+#         event = Event.objects.get(pk=event_id)
+#         rating_data = {
+#             "event_name": event.event_name,
+#             "event_date": event.date_schedule,
+#             "venue_rate": request.data.get("venue_rate"),
+#             "catering_rate": request.data.get("catering_rate"),
+#             "styling_rate": request.data.get("styling_rate"),
+#             "mc_rate": request.data.get("mc_rate"),
+#             "presentation_rate": request.data.get("presentation_rate"),
+#             "courtesy_rate": request.data.get("courtesy_rate"),
+#         }
+#         serializer = RatingSerializer(data=rating_data)
+#         if serializer.is_valid(raise_exception=True):
+#             serializer.save()
+#             return Response(serializer.data, status=status.HTTP_200_OK)
+#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+# training_query = Rating.objects.filter(event_date__range=[date(2020, 1, 1), date(2020, 12, 31)]).values('event_date', 'venue_rate').order_by('event_date')
+# training_df =  pd.DataFrame(training_query)
+# training_df.index = pd.to_datetime(training_df['event_date'])
+# del training_df['event_date']
+
+# testing_query = Rating.objects.filter(event_date__range=[date(2021, 1, 1), date(2021, 12, 31)]).values('event_date', 'venue_rate').order_by('event_date')
+# testing_df =  pd.DataFrame(testing_query)
+# testing_df.index = pd.to_datetime(testing_df['event_date'])
+# del testing_df['event_date']
+
+# y = training_df['venue_rate']
+
+# ARIMAmodel = ARIMA(y, order=(2,1,2))
+# ARIMAmodel = ARIMAmodel.fit()
+# y_pred = ARIMAmodel.get_forecast(len(testing_df.index))
+# y_pred_df = y_pred.conf_int(alpha=0.05)
+# y_pred_df["Predictions"] = ARIMAmodel.predict(start=y_pred_df.index[0], end=y_pred_df.index[-1])
+# y_pred_df.index = testing_df.index
+# y_pred_out = y_pred_df["Predictions"]
+
+# dummy_dates = pd.date_range(end = datetime.today(), periods = 100)
+# dummy_dates = pd.date_range(start="2022-01-01",end="2022-12-31").date
+# dummy_dates = pd.date_range(start="2022-1-1", periods=203).date
+# dummy_df = pd.DataFrame(dummy_dates)
+# dummy_df["event_date"] = dummy_dates
+# del dummy_df[0]
+# dummy_df["forecast_venue_rate"] = y_pred_out
+# json_df = dummy_df.to_dict("records")
+
+
+class GetVenueForecast(views.APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        january_rates = Rating.objects.filter(event_date__month="01").aggregate(
-            Avg("venue_rate")
+        training_query = (
+            Rating.objects.filter(
+                event_date__range=[
+                    date(date.today().year - 2, 1, 1),
+                    date(date.today().year - 2, 12, 31),
+                ]
+            )
+            .values("event_date", "venue_rate")
+            .order_by("event_date")
         )
-        february_rates = Rating.objects.filter(event_date__month="02").aggregate(
-            Avg("venue_rate")
+        training_df = pd.DataFrame(training_query)
+        training_df.index = pd.to_datetime(training_df["event_date"])
+        del training_df["event_date"]
+
+        testing_query = (
+            Rating.objects.filter(
+                event_date__range=[
+                    date(date.today().year - 1, 1, 1),
+                    date(date.today().year - 1, 12, 31),
+                ]
+            )
+            .values("event_date", "venue_rate")
+            .order_by("event_date")
         )
-        march_rates = Rating.objects.filter(event_date__month="03").aggregate(
-            Avg("venue_rate")
+        testing_df = pd.DataFrame(testing_query)
+        testing_df.index = pd.to_datetime(testing_df["event_date"])
+        del testing_df["event_date"]
+
+        y = training_df["venue_rate"]
+
+        ARIMAmodel = ARIMA(y, order=(2, 2, 2))
+        ARIMAmodel = ARIMAmodel.fit()
+        y_pred = ARIMAmodel.get_forecast(len(testing_df.index))
+        y_pred_df = y_pred.conf_int(alpha=0.05)
+        y_pred_df["Predictions"] = ARIMAmodel.predict(
+            start=y_pred_df.index[0], end=y_pred_df.index[-1]
         )
-        april_rates = Rating.objects.filter(event_date__month="04").aggregate(
-            Avg("venue_rate")
-        )
-        may_rates = Rating.objects.filter(event_date__month="05").aggregate(
-            Avg("venue_rate")
-        )
-        june_rates = Rating.objects.filter(event_date__month="06").aggregate(
-            Avg("venue_rate")
-        )
-        july_rates = Rating.objects.filter(event_date__month="07").aggregate(
-            Avg("venue_rate")
-        )
-        august_rates = Rating.objects.filter(event_date__month="08").aggregate(
-            Avg("venue_rate")
-        )
-        september_rates = Rating.objects.filter(event_date__month="09").aggregate(
-            Avg("venue_rate")
-        )
-        october_rates = Rating.objects.filter(event_date__month="10").aggregate(
-            Avg("venue_rate")
-        )
-        november_rates = Rating.objects.filter(event_date__month="11").aggregate(
-            Avg("venue_rate")
-        )
-        december_rates = Rating.objects.filter(event_date__month="12").aggregate(
-            Avg("venue_rate")
-        )
-        venue_rates = [
-            {"month": "January", "venue": january_rates["venue_rate__avg"]},
-            {"month": "February", "venue": february_rates["venue_rate__avg"]},
-            {"month": "March", "venue": march_rates["venue_rate__avg"]},
-            {"month": "April", "venue": april_rates["venue_rate__avg"]},
-            {"month": "May", "venue": may_rates["venue_rate__avg"]},
-            {"month": "June", "venue": june_rates["venue_rate__avg"]},
-            {"month": "July", "venue": july_rates["venue_rate__avg"]},
-            {"month": "August", "venue": august_rates["venue_rate__avg"]},
-            {"month": "September", "venue": september_rates["venue_rate__avg"]},
-            {"month": "October", "venue": october_rates["venue_rate__avg"]},
-            {"month": "November", "venue": november_rates["venue_rate__avg"]},
-            {"month": "December", "venue": december_rates["venue_rate__avg"]},
-        ]
-        return Response(venue_rates)
+        y_pred_df.index = testing_df.index
+        y_pred_out = y_pred_df["Predictions"]
+
+        forecast_dates = pd.date_range(
+            start=f"{date.today().year}-01-01", periods=365
+        ).date
+        y_pred_out.index = forecast_dates
+        forecast_df = pd.DataFrame(forecast_dates)
+        forecast_df["event_date"] = forecast_dates
+        del forecast_df[0]
+        forecast_df.index = forecast_dates
+        forecast_df["forecast_venue_rate"] = y_pred_out
+        json_df = json.dumps(forecast_df.to_dict("records"), cls=DjangoJSONEncoder)
+
+        return Response(json_df)
 
 
-class GetCateringRateForecast(views.APIView):
+class GetCateringForecast(views.APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        january_rates = Rating.objects.filter(event_date__month="01").aggregate(
-            Avg("catering_rate")
+        training_query = (
+            Rating.objects.filter(
+                event_date__range=[date(date.today().year - 2, 1, 1), date(date.today().year - 2, 12, 31)]
+            )
+            .values("event_date", "catering_rate")
+            .order_by("event_date")
         )
-        february_rates = Rating.objects.filter(event_date__month="02").aggregate(
-            Avg("catering_rate")
+        training_df = pd.DataFrame(training_query)
+        training_df.index = pd.to_datetime(training_df["event_date"])
+        del training_df["event_date"]
+
+        testing_query = (
+            Rating.objects.filter(
+                event_date__range=[date(date.today().year - 1, 1, 1), date(date.today().year - 1, 12, 31)]
+            )
+            .values("event_date", "catering_rate")
+            .order_by("event_date")
         )
-        march_rates = Rating.objects.filter(event_date__month="03").aggregate(
-            Avg("catering_rate")
+        testing_df = pd.DataFrame(testing_query)
+        testing_df.index = pd.to_datetime(testing_df["event_date"])
+        del testing_df["event_date"]
+
+        y = training_df["catering_rate"]
+
+        ARIMAmodel = ARIMA(y, order=(2, 2, 2))
+        ARIMAmodel = ARIMAmodel.fit()
+        y_pred = ARIMAmodel.get_forecast(len(testing_df.index))
+        y_pred_df = y_pred.conf_int(alpha=0.05)
+        y_pred_df["Predictions"] = ARIMAmodel.predict(
+            start=y_pred_df.index[0], end=y_pred_df.index[-1]
         )
-        april_rates = Rating.objects.filter(event_date__month="04").aggregate(
-            Avg("catering_rate")
-        )
-        may_rates = Rating.objects.filter(event_date__month="05").aggregate(
-            Avg("catering_rate")
-        )
-        june_rates = Rating.objects.filter(event_date__month="06").aggregate(
-            Avg("catering_rate")
-        )
-        july_rates = Rating.objects.filter(event_date__month="07").aggregate(
-            Avg("catering_rate")
-        )
-        august_rates = Rating.objects.filter(event_date__month="08").aggregate(
-            Avg("catering_rate")
-        )
-        september_rates = Rating.objects.filter(event_date__month="09").aggregate(
-            Avg("catering_rate")
-        )
-        october_rates = Rating.objects.filter(event_date__month="10").aggregate(
-            Avg("catering_rate")
-        )
-        november_rates = Rating.objects.filter(event_date__month="11").aggregate(
-            Avg("catering_rate")
-        )
-        december_rates = Rating.objects.filter(event_date__month="12").aggregate(
-            Avg("catering_rate")
-        )
-        catering_rates = [
-            {"month": "January", "catering": january_rates["catering_rate__avg"]},
-            {"month": "February", "catering": february_rates["catering_rate__avg"]},
-            {"month": "March", "catering": march_rates["catering_rate__avg"]},
-            {"month": "April", "catering": april_rates["catering_rate__avg"]},
-            {"month": "May", "catering": may_rates["catering_rate__avg"]},
-            {"month": "June", "catering": june_rates["catering_rate__avg"]},
-            {"month": "July", "catering": july_rates["catering_rate__avg"]},
-            {"month": "August", "catering": august_rates["catering_rate__avg"]},
-            {"month": "September", "catering": september_rates["catering_rate__avg"]},
-            {"month": "October", "catering": october_rates["catering_rate__avg"]},
-            {"month": "November", "catering": november_rates["catering_rate__avg"]},
-            {"month": "December", "catering": december_rates["catering_rate__avg"]},
-        ]
-        return Response(catering_rates)
+        y_pred_df.index = testing_df.index
+        y_pred_out = y_pred_df["Predictions"]
+
+        forecast_dates = pd.date_range(start=f'{date.today().year}-01-01', periods=365).date
+        y_pred_out.index = forecast_dates
+        forecast_df = pd.DataFrame(forecast_dates)
+        forecast_df["event_date"] = forecast_dates
+        del forecast_df[0]
+        forecast_df.index = forecast_dates
+        forecast_df["forecast_catering_rate"] = y_pred_out
+        json_df = json.dumps(forecast_df.to_dict("records"), cls=DjangoJSONEncoder)
+
+        return Response(json_df)
 
 
-class GetStylingRateForecast(views.APIView):
+class GetStylingForecast(views.APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        january_rates = Rating.objects.filter(event_date__month="01").aggregate(
-            Avg("styling_rate")
+        training_query = (
+            Rating.objects.filter(
+                event_date__range=[date(date.today().year - 2, 1, 1), date(date.today().year - 2, 12, 31)]
+            )
+            .values("event_date", "styling_rate")
+            .order_by("event_date")
         )
-        february_rates = Rating.objects.filter(event_date__month="02").aggregate(
-            Avg("styling_rate")
+        training_df = pd.DataFrame(training_query)
+        training_df.index = pd.to_datetime(training_df["event_date"])
+        del training_df["event_date"]
+
+        testing_query = (
+            Rating.objects.filter(
+                event_date__range=[date(date.today().year - 1, 1, 1), date(date.today().year - 1, 12, 31)]
+            )
+            .values("event_date", "styling_rate")
+            .order_by("event_date")
         )
-        march_rates = Rating.objects.filter(event_date__month="03").aggregate(
-            Avg("styling_rate")
+        testing_df = pd.DataFrame(testing_query)
+        testing_df.index = pd.to_datetime(testing_df["event_date"])
+        del testing_df["event_date"]
+
+        y = training_df["styling_rate"]
+
+        ARIMAmodel = ARIMA(y, order=(2, 2, 2))
+        ARIMAmodel = ARIMAmodel.fit()
+        y_pred = ARIMAmodel.get_forecast(len(testing_df.index))
+        y_pred_df = y_pred.conf_int(alpha=0.05)
+        y_pred_df["Predictions"] = ARIMAmodel.predict(
+            start=y_pred_df.index[0], end=y_pred_df.index[-1]
         )
-        april_rates = Rating.objects.filter(event_date__month="04").aggregate(
-            Avg("styling_rate")
-        )
-        may_rates = Rating.objects.filter(event_date__month="05").aggregate(
-            Avg("styling_rate")
-        )
-        june_rates = Rating.objects.filter(event_date__month="06").aggregate(
-            Avg("styling_rate")
-        )
-        july_rates = Rating.objects.filter(event_date__month="07").aggregate(
-            Avg("styling_rate")
-        )
-        august_rates = Rating.objects.filter(event_date__month="08").aggregate(
-            Avg("styling_rate")
-        )
-        september_rates = Rating.objects.filter(event_date__month="09").aggregate(
-            Avg("styling_rate")
-        )
-        october_rates = Rating.objects.filter(event_date__month="10").aggregate(
-            Avg("styling_rate")
-        )
-        november_rates = Rating.objects.filter(event_date__month="11").aggregate(
-            Avg("styling_rate")
-        )
-        december_rates = Rating.objects.filter(event_date__month="12").aggregate(
-            Avg("styling_rate")
-        )
-        styling_rates = [
-            {"month": "January", "styling": january_rates["styling_rate__avg"]},
-            {"month": "February", "styling": february_rates["styling_rate__avg"]},
-            {"month": "March", "styling": march_rates["styling_rate__avg"]},
-            {"month": "April", "styling": april_rates["styling_rate__avg"]},
-            {"month": "May", "styling": may_rates["styling_rate__avg"]},
-            {"month": "June", "styling": june_rates["styling_rate__avg"]},
-            {"month": "July", "styling": july_rates["styling_rate__avg"]},
-            {"month": "August", "styling": august_rates["styling_rate__avg"]},
-            {"month": "September", "styling": september_rates["styling_rate__avg"]},
-            {"month": "October", "styling": october_rates["styling_rate__avg"]},
-            {"month": "November", "styling": november_rates["styling_rate__avg"]},
-            {"month": "December", "styling": december_rates["styling_rate__avg"]},
-        ]
-        return Response(styling_rates)
+        y_pred_df.index = testing_df.index
+        y_pred_out = y_pred_df["Predictions"]
+
+        forecast_dates = pd.date_range(start=f"{date.today().year}-01-01", periods=365).date
+        y_pred_out.index = forecast_dates
+        forecast_df = pd.DataFrame(forecast_dates)
+        forecast_df["event_date"] = forecast_dates
+        del forecast_df[0]
+        forecast_df.index = forecast_dates
+        forecast_df["forecast_styling_rate"] = y_pred_out
+        json_df = json.dumps(forecast_df.to_dict("records"), cls=DjangoJSONEncoder)
+
+        return Response(json_df)
 
 
-class GetMCRateForecast(views.APIView):
+class GetMCForecast(views.APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        january_rates = Rating.objects.filter(event_date__month="01").aggregate(
-            Avg("mc_rate")
+        training_query = (
+            Rating.objects.filter(
+                event_date__range=[date(date.today().year - 2, 1, 1), date(date.today().year - 2, 12, 31)]
+            )
+            .values("event_date", "mc_rate")
+            .order_by("event_date")
         )
-        february_rates = Rating.objects.filter(event_date__month="02").aggregate(
-            Avg("mc_rate")
+        training_df = pd.DataFrame(training_query)
+        training_df.index = pd.to_datetime(training_df["event_date"])
+        del training_df["event_date"]
+
+        testing_query = (
+            Rating.objects.filter(
+                event_date__range=[date(date.today().year - 1, 1, 1), date(date.today().year - 1, 12, 31)]
+            )
+            .values("event_date", "mc_rate")
+            .order_by("event_date")
         )
-        march_rates = Rating.objects.filter(event_date__month="03").aggregate(
-            Avg("mc_rate")
+        testing_df = pd.DataFrame(testing_query)
+        testing_df.index = pd.to_datetime(testing_df["event_date"])
+        del testing_df["event_date"]
+
+        y = training_df["mc_rate"]
+
+        ARIMAmodel = ARIMA(y, order=(2, 2, 2))
+        ARIMAmodel = ARIMAmodel.fit()
+        y_pred = ARIMAmodel.get_forecast(len(testing_df.index))
+        y_pred_df = y_pred.conf_int(alpha=0.05)
+        y_pred_df["Predictions"] = ARIMAmodel.predict(
+            start=y_pred_df.index[0], end=y_pred_df.index[-1]
         )
-        april_rates = Rating.objects.filter(event_date__month="04").aggregate(
-            Avg("mc_rate")
-        )
-        may_rates = Rating.objects.filter(event_date__month="05").aggregate(
-            Avg("mc_rate")
-        )
-        june_rates = Rating.objects.filter(event_date__month="06").aggregate(
-            Avg("mc_rate")
-        )
-        july_rates = Rating.objects.filter(event_date__month="07").aggregate(
-            Avg("mc_rate")
-        )
-        august_rates = Rating.objects.filter(event_date__month="08").aggregate(
-            Avg("mc_rate")
-        )
-        september_rates = Rating.objects.filter(event_date__month="09").aggregate(
-            Avg("mc_rate")
-        )
-        october_rates = Rating.objects.filter(event_date__month="10").aggregate(
-            Avg("mc_rate")
-        )
-        november_rates = Rating.objects.filter(event_date__month="11").aggregate(
-            Avg("mc_rate")
-        )
-        december_rates = Rating.objects.filter(event_date__month="12").aggregate(
-            Avg("mc_rate")
-        )
-        mc_rates = [
-            {"month": "January", "mc": january_rates["mc_rate__avg"]},
-            {"month": "February", "mc": february_rates["mc_rate__avg"]},
-            {"month": "March", "mc": march_rates["mc_rate__avg"]},
-            {"month": "April", "mc": april_rates["mc_rate__avg"]},
-            {"month": "May", "mc": may_rates["mc_rate__avg"]},
-            {"month": "June", "mc": june_rates["mc_rate__avg"]},
-            {"month": "July", "mc": july_rates["mc_rate__avg"]},
-            {"month": "August", "mc": august_rates["mc_rate__avg"]},
-            {"month": "September", "mc": september_rates["mc_rate__avg"]},
-            {"month": "October", "mc": october_rates["mc_rate__avg"]},
-            {"month": "November", "mc": november_rates["mc_rate__avg"]},
-            {"month": "December", "mc": december_rates["mc_rate__avg"]},
-        ]
-        return Response(mc_rates)
+        y_pred_df.index = testing_df.index
+        y_pred_out = y_pred_df["Predictions"]
+
+        forecast_dates = pd.date_range(start=f"{date.today().year}-01-01", periods=365).date
+        y_pred_out.index = forecast_dates
+        forecast_df = pd.DataFrame(forecast_dates)
+        forecast_df["event_date"] = forecast_dates
+        del forecast_df[0]
+        forecast_df.index = forecast_dates
+        forecast_df["forecast_mc_rate"] = y_pred_out
+        json_df = json.dumps(forecast_df.to_dict("records"), cls=DjangoJSONEncoder)
+
+        return Response(json_df)
 
 
-class GetPresentationRateForecast(views.APIView):
+class GetPresentationForecast(views.APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        january_rates = Rating.objects.filter(event_date__month="01").aggregate(
-            Avg("presentation_rate")
+        training_query = (
+            Rating.objects.filter(
+                event_date__range=[date(date.today().year - 2, 1, 1), date(date.today().year - 2, 12, 31)]
+            )
+            .values("event_date", "presentation_rate")
+            .order_by("event_date")
         )
-        february_rates = Rating.objects.filter(event_date__month="02").aggregate(
-            Avg("presentation_rate")
+        training_df = pd.DataFrame(training_query)
+        training_df.index = pd.to_datetime(training_df["event_date"])
+        del training_df["event_date"]
+
+        testing_query = (
+            Rating.objects.filter(
+                event_date__range=[date(date.today().year - 1, 1, 1), date(date.today().year - 1, 12, 31)]
+            )
+            .values("event_date", "presentation_rate")
+            .order_by("event_date")
         )
-        march_rates = Rating.objects.filter(event_date__month="03").aggregate(
-            Avg("presentation_rate")
+        testing_df = pd.DataFrame(testing_query)
+        testing_df.index = pd.to_datetime(testing_df["event_date"])
+        del testing_df["event_date"]
+
+        y = training_df["presentation_rate"]
+
+        ARIMAmodel = ARIMA(y, order=(2, 2, 2))
+        ARIMAmodel = ARIMAmodel.fit()
+        y_pred = ARIMAmodel.get_forecast(len(testing_df.index))
+        y_pred_df = y_pred.conf_int(alpha=0.05)
+        y_pred_df["Predictions"] = ARIMAmodel.predict(
+            start=y_pred_df.index[0], end=y_pred_df.index[-1]
         )
-        april_rates = Rating.objects.filter(event_date__month="04").aggregate(
-            Avg("presentation_rate")
-        )
-        may_rates = Rating.objects.filter(event_date__month="05").aggregate(
-            Avg("presentation_rate")
-        )
-        june_rates = Rating.objects.filter(event_date__month="06").aggregate(
-            Avg("presentation_rate")
-        )
-        july_rates = Rating.objects.filter(event_date__month="07").aggregate(
-            Avg("presentation_rate")
-        )
-        august_rates = Rating.objects.filter(event_date__month="08").aggregate(
-            Avg("presentation_rate")
-        )
-        september_rates = Rating.objects.filter(event_date__month="09").aggregate(
-            Avg("presentation_rate")
-        )
-        october_rates = Rating.objects.filter(event_date__month="10").aggregate(
-            Avg("presentation_rate")
-        )
-        november_rates = Rating.objects.filter(event_date__month="11").aggregate(
-            Avg("presentation_rate")
-        )
-        december_rates = Rating.objects.filter(event_date__month="12").aggregate(
-            Avg("presentation_rate")
-        )
-        presentation_rates = [
-            {
-                "month": "January",
-                "presentation": january_rates["presentation_rate__avg"],
-            },
-            {
-                "month": "February",
-                "presentation": february_rates["presentation_rate__avg"],
-            },
-            {"month": "March", "presentation": march_rates["presentation_rate__avg"]},
-            {"month": "April", "presentation": april_rates["presentation_rate__avg"]},
-            {"month": "May", "presentation": may_rates["presentation_rate__avg"]},
-            {"month": "June", "presentation": june_rates["presentation_rate__avg"]},
-            {"month": "July", "presentation": july_rates["presentation_rate__avg"]},
-            {"month": "August", "presentation": august_rates["presentation_rate__avg"]},
-            {
-                "month": "September",
-                "presentation": september_rates["presentation_rate__avg"],
-            },
-            {
-                "month": "October",
-                "presentation": october_rates["presentation_rate__avg"],
-            },
-            {
-                "month": "November",
-                "presentation": november_rates["presentation_rate__avg"],
-            },
-            {
-                "month": "December",
-                "presentation": december_rates["presentation_rate__avg"],
-            },
-        ]
-        return Response(presentation_rates)
+        y_pred_df.index = testing_df.index
+        y_pred_out = y_pred_df["Predictions"]
+
+        forecast_dates = pd.date_range(start=f"{date.today().year}-01-01", periods=365).date
+        y_pred_out.index = forecast_dates
+        forecast_df = pd.DataFrame(forecast_dates)
+        forecast_df["event_date"] = forecast_dates
+        del forecast_df[0]
+        forecast_df.index = forecast_dates
+        forecast_df["forecast_presentation_rate"] = y_pred_out
+        json_df = json.dumps(forecast_df.to_dict("records"), cls=DjangoJSONEncoder)
+
+        return Response(json_df)
 
 
-class GetCoutesyRateForecast(views.APIView):
+class GetCourtesyForecast(views.APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        january_rates = Rating.objects.filter(event_date__month="01").aggregate(
-            Avg("courtesy_rate")
+        training_query = (
+            Rating.objects.filter(
+                event_date__range=[date(date.today().year - 2, 1, 1), date(date.today().year - 2, 12, 31)]
+            )
+            .values("event_date", "courtesy_rate")
+            .order_by("event_date")
         )
-        february_rates = Rating.objects.filter(event_date__month="02").aggregate(
-            Avg("courtesy_rate")
+        training_df = pd.DataFrame(training_query)
+        training_df.index = pd.to_datetime(training_df["event_date"])
+        del training_df["event_date"]
+
+        testing_query = (
+            Rating.objects.filter(
+                event_date__range=[date(date.today().year - 1, 1, 1), date(date.today().year - 1, 12, 31)]
+            )
+            .values("event_date", "courtesy_rate")
+            .order_by("event_date")
         )
-        march_rates = Rating.objects.filter(event_date__month="03").aggregate(
-            Avg("courtesy_rate")
+        testing_df = pd.DataFrame(testing_query)
+        testing_df.index = pd.to_datetime(testing_df["event_date"])
+        del testing_df["event_date"]
+
+        y = training_df["courtesy_rate"]
+
+        ARIMAmodel = ARIMA(y, order=(2, 2, 2))
+        ARIMAmodel = ARIMAmodel.fit()
+        y_pred = ARIMAmodel.get_forecast(len(testing_df.index))
+        y_pred_df = y_pred.conf_int(alpha=0.05)
+        y_pred_df["Predictions"] = ARIMAmodel.predict(
+            start=y_pred_df.index[0], end=y_pred_df.index[-1]
         )
-        april_rates = Rating.objects.filter(event_date__month="04").aggregate(
-            Avg("courtesy_rate")
-        )
-        may_rates = Rating.objects.filter(event_date__month="05").aggregate(
-            Avg("courtesy_rate")
-        )
-        june_rates = Rating.objects.filter(event_date__month="06").aggregate(
-            Avg("courtesy_rate")
-        )
-        july_rates = Rating.objects.filter(event_date__month="07").aggregate(
-            Avg("courtesy_rate")
-        )
-        august_rates = Rating.objects.filter(event_date__month="08").aggregate(
-            Avg("courtesy_rate")
-        )
-        september_rates = Rating.objects.filter(event_date__month="09").aggregate(
-            Avg("courtesy_rate")
-        )
-        october_rates = Rating.objects.filter(event_date__month="10").aggregate(
-            Avg("courtesy_rate")
-        )
-        november_rates = Rating.objects.filter(event_date__month="11").aggregate(
-            Avg("courtesy_rate")
-        )
-        december_rates = Rating.objects.filter(event_date__month="12").aggregate(
-            Avg("courtesy_rate")
-        )
-        courtesy_rates = [
-            {
-                "month": "January",
-                "courtesy": january_rates["courtesy_rate__avg"],
-            },
-            {
-                "month": "February",
-                "courtesy": february_rates["courtesy_rate__avg"],
-            },
-            {"month": "March", "courtesy": march_rates["courtesy_rate__avg"]},
-            {"month": "April", "courtesy": april_rates["courtesy_rate__avg"]},
-            {"month": "May", "courtesy": may_rates["courtesy_rate__avg"]},
-            {"month": "June", "courtesy": june_rates["courtesy_rate__avg"]},
-            {"month": "July", "courtesy": july_rates["courtesy_rate__avg"]},
-            {"month": "August", "courtesy": august_rates["courtesy_rate__avg"]},
-            {
-                "month": "September",
-                "courtesy": september_rates["courtesy_rate__avg"],
-            },
-            {
-                "month": "October",
-                "courtesy": october_rates["courtesy_rate__avg"],
-            },
-            {
-                "month": "November",
-                "courtesy": november_rates["courtesy_rate__avg"],
-            },
-            {
-                "month": "December",
-                "courtesy": december_rates["courtesy_rate__avg"],
-            },
-        ]
-        return Response(courtesy_rates)
+        y_pred_df.index = testing_df.index
+        y_pred_out = y_pred_df["Predictions"]
+
+        forecast_dates = pd.date_range(start=f"{date.today().year}-01-01", periods=365).date
+        y_pred_out.index = forecast_dates
+        forecast_df = pd.DataFrame(forecast_dates)
+        forecast_df["event_date"] = forecast_dates
+        del forecast_df[0]
+        forecast_df.index = forecast_dates
+        forecast_df["forecast_courtesy_rate"] = y_pred_out
+        json_df = json.dumps(forecast_df.to_dict("records"), cls=DjangoJSONEncoder)
+
+        return Response(json_df)
 
 
 # CHAT ROOM VIEWS
@@ -1313,10 +1290,12 @@ class GetMemberRooms(generics.ListAPIView):
     serializer_class = ChatRoomSerializer
 
     def get_queryset(self):
+        print(self.request.user.username)
         member = RoomMember.objects.filter(
             member=self.request.user.username
         ).values_list("room")
         member_rooms = ChatRoom.objects.filter(pk__in=member)
+        print(member_rooms)
         return member_rooms
 
 
@@ -1354,7 +1333,7 @@ class PresentTransactions(views.APIView):
                 payment_status=F("status"),
                 last_update=F("created_at"),
             )
-            .order_by("event__date_schedule")
+            .order_by("created_at")
         )
 
         json_transactions_list = json.dumps(
@@ -1371,25 +1350,72 @@ class PastTransactions(views.APIView):
 
     def get(self, request, year):
 
-        transactions_list = (
-            TransactionLog.objects.filter(date_schedule__year=year)
-            .values(
-                "id",
-                event_name=F("event__event_name"),
-                date_schedule=F("event__date_schedule"),
-                package_cost=F("event__package_cost"),
-                client_payment=F("total_payment"),
-                payment_status=F("status"),
-                last_update=F("created_at"),
+        if int(year) == date.today().year:
+            transactions_list = (
+                TransactionLog.objects.filter(
+                    event__date_schedule__range=[
+                        date(date.today().year, 1, 1),
+                        date.today(),
+                    ]
+                )
+                .values(
+                    "id",
+                    event_name=F("event__event_name"),
+                    event_schedule=F("event__date_schedule"),
+                    package_cost=F("event__package_cost"),
+                    client_payment=F("total_payment"),
+                    payment_status=F("status"),
+                    last_update=F("created_at"),
+                )
+                .order_by("event_schedule")
             )
-            .order_by("event__date_schedule")
+
+            json_transactions_list = json.dumps(
+                list(transactions_list), cls=DjangoJSONEncoder
+            )
+
+            return Response(json_transactions_list)
+        else:
+            transactions_list = (
+                TransactionLog.objects.filter(
+                    event__date_schedule__range=[
+                        date(int(year), 1, 1),
+                        date(int(year), 12, 31),
+                    ]
+                )
+                .values(
+                    "id",
+                    event_name=F("event__event_name"),
+                    event_schedule=F("event__date_schedule"),
+                    package_cost=F("event__package_cost"),
+                    client_payment=F("total_payment"),
+                    payment_status=F("status"),
+                    last_update=F("created_at"),
+                )
+                .order_by("event_schedule")
+            )
+
+            json_transactions_list = json.dumps(
+                list(transactions_list), cls=DjangoJSONEncoder
+            )
+
+            return Response(json_transactions_list)
+
+
+class CreateTransaction(generics.CreateAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = TransactionSerializer
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.serializer_class(
+            data=request.data, context={"request": request}
         )
 
-        json_transactions_list = json.dumps(
-            list(transactions_list), cls=DjangoJSONEncoder
-        )
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-        return Response(json_transactions_list)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 # LIST VIEWS
@@ -1512,7 +1538,7 @@ class AllCompletedTaskView(generics.ListAPIView):
 class AllChatRooms(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = ChatRoomSerializer
-    queryset = ChatRoom.objects.all().order_by("pk")
+    queryset = ChatRoom.objects.all().order_by("-pk")
 
 
 class AllRoomChatMessages(generics.ListAPIView):

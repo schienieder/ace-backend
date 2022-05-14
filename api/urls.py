@@ -44,12 +44,12 @@ from api.views import (
     UpdateRequestView,
     DestroyRequestView,
     CreateRatingView,
-    GetVenueRateForecast,
-    GetCateringRateForecast,
-    GetStylingRateForecast,
-    GetMCRateForecast,
-    GetPresentationRateForecast,
-    GetCoutesyRateForecast,
+    GetVenueForecast,
+    GetCateringForecast,
+    GetStylingForecast,
+    GetMCForecast,
+    GetPresentationForecast,
+    GetCourtesyForecast,
     CreateChatRoom,
     GetChatRoom,
     JoinChatRoom,
@@ -77,6 +77,7 @@ from api.views import (
     AdminGetClientView,
     AllChatRooms,
     AllRoomChatMessages,
+    CreateTransaction,
     # email_view,
 )
 
@@ -198,7 +199,7 @@ urlpatterns = [
     # AFFILIATIONS VIEW PATHS
     path("add_affiliation/", CreateAffiliationView.as_view(), name="createAffiliation"),
     path("affiliation/<int:pk>", GetAffiliationView.as_view(), name="affiliationView"),
-    # path("dummy/", GetAllAffiliations.as_view(), name="dummy"),
+    # path("dummy/", GetVenueForecast.as_view(), name="dummy"),
     path(
         "dashboard_affiliations/",
         DashboardAffiliations.as_view(),
@@ -224,21 +225,20 @@ urlpatterns = [
         "request/destroy/<int:pk>", DestroyRequestView.as_view(), name="destroyRequest"
     ),
     # RATING VIEW PATHS
-    path("add_rating/<int:event_id>", CreateRatingView.as_view(), name="addRating"),
-    path("venue_forecast/", GetVenueRateForecast.as_view(), name="venueForecast"),
-    path(
-        "catering_forecast/", GetCateringRateForecast.as_view(), name="cateringForecast"
-    ),
-    path("styling_forecast/", GetStylingRateForecast.as_view(), name="stylingForecast"),
-    path("mc_forecast/", GetMCRateForecast.as_view(), name="mcForecast"),
+    path("add_rating/", CreateRatingView.as_view(), name="addRating"),
+    # path("add_rating/<int:event_id>", CreateRatingView.as_view(), name="addRating"),
+    path("venue_forecast/", GetVenueForecast.as_view(), name="venueForecast"),
+    path("catering_forecast/", GetCateringForecast.as_view(), name="cateringForecast"),
+    path("styling_forecast/", GetStylingForecast.as_view(), name="stylingForecast"),
+    path("mc_forecast/", GetMCForecast.as_view(), name="mcForecast"),
     path(
         "presentation_forecast/",
-        GetPresentationRateForecast.as_view(),
+        GetPresentationForecast.as_view(),
         name="presentationForecast",
     ),
     path(
-        "coutesy_forecast/",
-        GetCoutesyRateForecast.as_view(),
+        "courtesy_forecast/",
+        GetCourtesyForecast.as_view(),
         name="coutesyForecast",
     ),
     # CHATROOM VIEWS
@@ -306,5 +306,6 @@ urlpatterns = [
     # ADMIN VIEW PATHS
     path("admin_partner/<int:pk>", AdminGetPartnerView.as_view(), name="adminPartner"),
     path("admin_client/<int:pk>", AdminGetClientView.as_view(), name="adminClient"),
+    path("add_transaction/", CreateTransaction.as_view(), name="addTransaction"),
     # path("email_view", email_view, name="emailTemplate"),
 ]

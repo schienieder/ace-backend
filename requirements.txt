@@ -20,6 +20,8 @@ Django==4.0.2
 django-cors-headers==3.7.0
 django-environ==0.4.5
 django-heroku==0.3.1
+django-model-utils==4.2.0
+django-pandas==0.6.6
 djangorestframework==3.12.4
 djangorestframework-simplejwt==4.7.2
 fonttools==4.29.1
@@ -77,6 +79,8 @@ threadpoolctl==3.1.0
 toml==0.10.2
 tomli==1.2.0
 tqdm==4.62.3
+Twisted==22.4.0
+twisted-iocpsupport==1.0.2
 txaio==21.2.1
 typeguard==2.13.3
 typing-extensions==4.0.1

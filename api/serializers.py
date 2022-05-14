@@ -275,5 +275,5 @@ class PartnerEmailMobileSerializer(serializers.ModelSerializer):
 class TransactionSerializer(serializers.ModelSerializer):
     class Meta:
         model = TransactionLog
-        field = "__all__"
+        fields = "__all__"
         extra_kwargs = {"id": {"read_only": True}}
