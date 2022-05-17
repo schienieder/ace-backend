@@ -225,7 +225,7 @@ urlpatterns = [
         "request/destroy/<int:pk>", DestroyRequestView.as_view(), name="destroyRequest"
     ),
     # RATING VIEW PATHS
-    path("add_rating/", CreateRatingView.as_view(), name="addRating"),
+    path("add_rating/<int:event_id>", CreateRatingView.as_view(), name="addRating"),
     # path("add_rating/<int:event_id>", CreateRatingView.as_view(), name="addRating"),
     path("venue_forecast/", GetVenueForecast.as_view(), name="venueForecast"),
     path("catering_forecast/", GetCateringForecast.as_view(), name="cateringForecast"),

@@ -794,7 +794,7 @@ class DashboardAffiliations(views.APIView):
         ).values_list("id")
         affiliations_list = AffiliationRequest.objects.filter(
             event__in=event_ids
-        ).values("partner__first_name", "partner__last_name", "status")[:5]
+        ).values("id", "partner__first_name", "partner__last_name", "status")[:5]
 
         json_affiliations_list = json.dumps(
             list(affiliations_list), cls=DjangoJSONEncoder
@@ -867,42 +867,42 @@ class DestroyRequestView(generics.DestroyAPIView):
 
 
 # RATING VIEWS
-class CreateRatingView(generics.CreateAPIView):
-    permission_classes = [AllowAny]
-    serializer_class = RatingSerializer
-
-    def create(self, request, *args, **kwargs):
-        serializer = self.serializer_class(
-            data=request.data, context={"request": request}
-        )
-
-        if serializer.is_valid(raise_exception=True):
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-# class CreateRatingView(views.APIView):
+# class CreateRatingView(generics.CreateAPIView):
 #     permission_classes = [AllowAny]
+#     serializer_class = RatingSerializer
 
-#     def post(self, request, event_id):
-#         event = Event.objects.get(pk=event_id)
-#         rating_data = {
-#             "event_name": event.event_name,
-#             "event_date": event.date_schedule,
-#             "venue_rate": request.data.get("venue_rate"),
-#             "catering_rate": request.data.get("catering_rate"),
-#             "styling_rate": request.data.get("styling_rate"),
-#             "mc_rate": request.data.get("mc_rate"),
-#             "presentation_rate": request.data.get("presentation_rate"),
-#             "courtesy_rate": request.data.get("courtesy_rate"),
-#         }
-#         serializer = RatingSerializer(data=rating_data)
+#     def create(self, request, *args, **kwargs):
+#         serializer = self.serializer_class(
+#             data=request.data, context={"request": request}
+#         )
+
 #         if serializer.is_valid(raise_exception=True):
 #             serializer.save()
-#             return Response(serializer.data, status=status.HTTP_200_OK)
+#             return Response(serializer.data, status=status.HTTP_201_CREATED)
+
 #         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class CreateRatingView(views.APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request, event_id):
+        event = Event.objects.get(pk=event_id)
+        rating_data = {
+            "event_name": event.event_name,
+            "event_date": event.date_schedule,
+            "venue_rate": request.data.get("venue_rate"),
+            "catering_rate": request.data.get("catering_rate"),
+            "styling_rate": request.data.get("styling_rate"),
+            "mc_rate": request.data.get("mc_rate"),
+            "presentation_rate": request.data.get("presentation_rate"),
+            "courtesy_rate": request.data.get("courtesy_rate"),
+        }
+        serializer = RatingSerializer(data=rating_data)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 # training_query = Rating.objects.filter(event_date__range=[date(2020, 1, 1), date(2020, 12, 31)]).values('event_date', 'venue_rate').order_by('event_date')
@@ -1374,7 +1374,7 @@ class PresentTransactions(views.APIView):
                 payment_status=F("status"),
                 last_update=F("created_at"),
             )
-            .order_by("created_at")
+            .order_by("last_update")
         )
 
         json_transactions_list = json.dumps(
@@ -1408,7 +1408,7 @@ class PastTransactions(views.APIView):
                     payment_status=F("status"),
                     last_update=F("created_at"),
                 )
-                .order_by("event_schedule")
+                .order_by("last_update")
             )
 
             json_transactions_list = json.dumps(
@@ -1476,7 +1476,8 @@ class AllClientBookingsView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = EventBookingSerializer
     queryset = EventBookings.objects.filter(
-        desired_date__range=[date.today(), date(date.today().year, 12, 31)]
+        desired_date__range=[date.today(), date(date.today().year, 12, 31)],
+        status="Pending",
     )
 
 
