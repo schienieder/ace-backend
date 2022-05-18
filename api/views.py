@@ -324,21 +324,12 @@ class GetBookingView(generics.RetrieveAPIView):
 class GetClientBookingView(generics.RetrieveAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = EventBookingSerializer
-    queryset = EventBookings.objects.all()
 
     def get_queryset(self):
-        return self.queryset
-
-    def get_object(self):
-        queryset = self.get_queryset()
-        client = Client.objects.get(account__id=self.request.user.id)
-        my_obj = get_object_or_404(queryset, booked_by=client)
-        return my_obj
-
-    def retrieve(self, request, *args, **kwargs):
-        instance = self.get_object()
-        serializer = self.get_serializer(instance)
-        return Response(serializer.data)
+        client_booking = EventBookings.objects.filter(
+            desired_date__lte=date.today(), booked_by__id=self.request.user.id
+        )
+        return client_booking
 
 
 class UpdateBookingView(generics.UpdateAPIView):
@@ -424,20 +415,12 @@ class CreateInterviewView(generics.CreateAPIView):
 class GetInterviewView(generics.RetrieveAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = InterviewSerializer
-    queryset = InterviewSchedule.objects.all()
 
     def get_queryset(self):
-        return self.queryset
-
-    def get_object(self):
-        queryset = self.get_queryset()
-        my_obj = get_object_or_404(queryset, client__id=self.kwargs["pk"])
-        return my_obj
-
-    def retrieve(self, request, *args, **kwargs):
-        instance = self.get_object()
-        serializer = self.get_serializer(instance)
-        return Response(serializer.data)
+        client_interview = InterviewSchedule.objects.filter(
+            date__lte=date.today(), client__id=self.request.user.id
+        )
+        return client_interview
 
 
 class UpdateInterviewSchedule(generics.UpdateAPIView):
@@ -571,21 +554,12 @@ class PartnerDashboardEvents(views.APIView):
 class GetClientEventView(generics.RetrieveAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = EventSerializer
-    queryset = Event.objects.all()
 
     def get_queryset(self):
-        return self.queryset
-
-    def get_object(self):
-        queryset = self.get_queryset()
-        client = Client.objects.get(account__id=self.request.user.id)
-        my_obj = get_object_or_404(queryset, client=client)
-        return my_obj
-
-    def retrieve(self, request, *args, **kwargs):
-        instance = self.get_object()
-        serializer = self.get_serializer(instance)
-        return Response(serializer.data)
+        client_event = Event.objects.filter(
+            date_schedule__lte=date.today(), client__id=self.request.user.id
+        )
+        return client_event
 
 
 class ClientPayments(generics.ListAPIView):
